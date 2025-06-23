@@ -1,0 +1,14 @@
+# Flask Configuration
+FLASK_APP=app.py
+FLASK_ENV=development
+SECRET_KEY=your-secret-key-here
+
+# Database Configuration
+DATABASE_URL=sqlite:///garden_fairy.db
+
+# Google OAuth Configuration
+GOOGLE_CLIENT_ID=your-google-oauth-client-id
+GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+
+# CORS Configuration
+FRONTEND_URL=http://localhost:3000 
