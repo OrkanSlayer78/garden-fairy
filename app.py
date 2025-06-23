@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, send_from_directory, send_file
 from flask_login import LoginManager
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -17,7 +17,8 @@ from routes.garden_layout import garden_layout_bp
 # from routes.ai_features import ai_bp  # Temporarily disabled for deployment
 
 def create_app():
-    app = Flask(__name__)
+    # Configure Flask to serve static files from current directory
+    app = Flask(__name__, static_folder='.', static_url_path='')
     
     # Configuration
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -78,9 +79,9 @@ def create_app():
     def health_check():
         return jsonify({'status': 'healthy', 'service': 'garden-fairy-backend'})
     
-    # Root endpoint
-    @app.route('/')
-    def root():
+    # API info endpoint
+    @app.route('/api')
+    def api_info():
         return jsonify({
             'message': 'Garden Fairy API',
             'version': '1.0.0',
@@ -91,6 +92,28 @@ def create_app():
                 'calendar': '/api/calendar'
             }
         })
+    
+    # Serve React App - catch all non-API routes
+    @app.route('/', defaults={'path': ''})
+    @app.route('/<path:path>')
+    def serve_react(path):
+        # If it's an API route, let Flask handle it
+        if path.startswith('api/') or path.startswith('auth/') or path == 'health':
+            # This shouldn't happen as routes above should catch these
+            return jsonify({'error': 'Route not found'}), 404
+        
+        # If it's a static file request, serve it
+        if path and '.' in path:
+            try:
+                return send_from_directory('.', path)
+            except:
+                pass
+        
+        # Otherwise serve React app (for client-side routing)
+        try:
+            return send_file('index.html')
+        except:
+            return jsonify({'error': 'Frontend not found - React app not built'}), 404
     
     return app
 
