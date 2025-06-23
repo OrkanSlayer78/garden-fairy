@@ -14,7 +14,7 @@ from routes.plants import plants_bp
 from routes.garden import garden_bp
 from routes.calendar import calendar_bp
 from routes.garden_layout import garden_layout_bp
-from routes.ai_features import ai_bp
+# from routes.ai_features import ai_bp  # Temporarily disabled for deployment
 
 def create_app():
     app = Flask(__name__)
@@ -71,7 +71,7 @@ def create_app():
     app.register_blueprint(garden_bp)
     app.register_blueprint(calendar_bp)
     app.register_blueprint(garden_layout_bp)
-    app.register_blueprint(ai_bp)
+    # app.register_blueprint(ai_bp)  # Temporarily disabled for deployment
     
     # Health check endpoint
     @app.route('/health')
