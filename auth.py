@@ -78,23 +78,38 @@ def logout():
 @auth_bp.route('/auth/user')
 def get_current_user():
     """Get current authenticated user info"""
-    if current_user.is_authenticated:
-        return jsonify({
-            'authenticated': True,
-            'user': current_user.to_dict()
-        })
-    else:
+    try:
+        if current_user.is_authenticated:
+            return jsonify({
+                'authenticated': True,
+                'user': current_user.to_dict()
+            })
+        else:
+            return jsonify({
+                'authenticated': False,
+                'user': None
+            })
+    except Exception as e:
+        current_app.logger.error(f"Auth user error: {str(e)}")
         return jsonify({
             'authenticated': False,
-            'user': None
-        })
+            'user': None,
+            'error': f'Auth check failed: {str(e)}'
+        }), 500
 
 @auth_bp.route('/auth/check')
 def check_auth():
     """Check if user is authenticated"""
-    return jsonify({
-        'authenticated': current_user.is_authenticated
-    })
+    try:
+        return jsonify({
+            'authenticated': current_user.is_authenticated
+        })
+    except Exception as e:
+        current_app.logger.error(f"Auth check error: {str(e)}")
+        return jsonify({
+            'authenticated': False,
+            'error': f'Auth check failed: {str(e)}'
+        }), 500
 
 @auth_bp.route('/auth/oauth/callback', methods=['POST'])
 def oauth_callback():
