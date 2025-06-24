@@ -115,27 +115,27 @@ def create_app():
             }
         })
     
-    # Serve React App - catch all non-API routes
+    # Serve React App - catch all non-API routes (MUST BE LAST!)
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve_react(path):
-        # If it's an API route, let Flask handle it
-        if path.startswith('api/') or path.startswith('auth/') or path == 'health':
-            # This shouldn't happen as routes above should catch these
-            return jsonify({'error': 'Route not found'}), 404
+        # Skip API routes - they should be handled above
+        if path.startswith('api/') or path.startswith('auth/') or path in ['health', 'init-db']:
+            # If we get here, it means the route wasn't found above
+            return jsonify({'error': 'API route not found'}), 404
         
         # If it's a static file request, serve it
         if path and '.' in path:
             try:
                 return send_from_directory('.', path)
-            except:
-                pass
+            except Exception:
+                return jsonify({'error': 'Static file not found'}), 404
         
-        # Otherwise serve React app (for client-side routing)
+        # For all other routes (like /login, /dashboard), serve React app
         try:
             return send_file('index.html')
-        except:
-            return jsonify({'error': 'Frontend not found - React app not built'}), 404
+        except Exception as e:
+            return jsonify({'error': f'Frontend not found: {str(e)}'}), 404
     
     return app
 
