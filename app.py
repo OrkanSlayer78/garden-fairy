@@ -79,6 +79,27 @@ def create_app():
     def health_check():
         return jsonify({'status': 'healthy', 'service': 'garden-fairy-backend'})
     
+    # Database initialization endpoint (for production setup)
+    @app.route('/init-db')
+    def init_database():
+        try:
+            # Create all tables
+            db.create_all()
+            
+            # Initialize sample data
+            init_sample_data(app)
+            
+            return jsonify({
+                'status': 'success', 
+                'message': 'Database initialized with sample data',
+                'database_url': app.config['SQLALCHEMY_DATABASE_URI'][:50] + '...'  # Don't expose full URL
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'error', 
+                'message': f'Database initialization failed: {str(e)}'
+            }), 500
+    
     # API info endpoint
     @app.route('/api')
     def api_info():
@@ -118,12 +139,13 @@ def create_app():
     return app
 
 def init_sample_data(app):
-    """Initialize sample plant types for development"""
+    """Initialize sample plant types for development and production"""
     with app.app_context():
         from models import PlantType
         
         # Check if sample data already exists
         if PlantType.query.count() > 0:
+            print("Sample data already exists, skipping initialization.")
             return
         
         sample_plants = [
