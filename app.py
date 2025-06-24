@@ -135,7 +135,13 @@ def create_app():
     # Serve static files first (higher priority than catch-all)
     @app.route('/static/<path:filename>')
     def serve_static(filename):
-        return send_from_directory('static', filename)
+        response = send_from_directory('static', filename)
+        # Force Railway to refresh cached files - especially important for JS/CSS
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.headers['X-Force-Refresh'] = 'FIXED_LOCALHOST_20250624'
+        return response
     
     # Serve main React app files
     @app.route('/favicon.ico')
@@ -173,7 +179,13 @@ def create_app():
         
         # All other routes (React Router paths like /dashboard, /plants, etc.)
         # Serve the main React app which will handle client-side routing
-        return send_file('index.html')
+        response = send_file('index.html')
+        # Force Railway to refresh index.html cache
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.headers['X-Force-Refresh'] = 'FIXED_LOCALHOST_20250624'
+        return response
     
     return app
 
