@@ -30,11 +30,14 @@ def create_app():
     
     # Database configuration (supports both SQLite and PostgreSQL)
     database_url = os.getenv('DATABASE_URL', 'sqlite:///garden_fairy.db')
+    print(f"DATABASE_URL from environment: {database_url}")
+    
     if database_url and database_url.startswith('postgres://'):
         # Fix for newer SQLAlchemy versions
         database_url = database_url.replace('postgres://', 'postgresql://', 1)
     
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    print(f"Final database URI: {database_url[:50]}...")
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
     app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
