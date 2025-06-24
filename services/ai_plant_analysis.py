@@ -20,8 +20,17 @@ class AIPlantAnalysisService:
     """
     
     def __init__(self):
-        self.openai_client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        self.openai_client = None
         self.plantnet_api_key = os.getenv('PLANTNET_API_KEY')
+    
+    def _get_openai_client(self):
+        """Lazy initialization of OpenAI client"""
+        if self.openai_client is None:
+            api_key = os.getenv('OPENAI_API_KEY')
+            if not api_key:
+                raise ValueError("OPENAI_API_KEY environment variable is required for AI features")
+            self.openai_client = openai.OpenAI(api_key=api_key)
+        return self.openai_client
         
     def identify_plant_species(self, image_path: str) -> Dict[str, Any]:
         """Identify plant species using PlantNet API + OpenAI Vision"""
@@ -92,7 +101,8 @@ class AIPlantAnalysisService:
             Format as JSON with: recommended_plants, planting_timeline, care_tips, companion_suggestions, local_suppliers
             """
             
-            response = self.openai_client.chat.completions.create(
+            client = self._get_openai_client()
+            response = client.chat.completions.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -148,7 +158,8 @@ class AIPlantAnalysisService:
             with open(image_path, "rb") as image_file:
                 base64_image = base64.b64encode(image_file.read()).decode('utf-8')
             
-            response = self.openai_client.chat.completions.create(
+            client = self._get_openai_client()
+            response = client.chat.completions.create(
                 model="gpt-4-vision-preview",
                 messages=[
                     {
