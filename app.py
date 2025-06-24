@@ -49,7 +49,7 @@ def create_app():
     allowed_origins = [
         'http://localhost:3000',  # Development
         'http://localhost:5000',  # Development
-        'https://garden-fairy-production.up.railway.app',  # Production
+        'https://garden-fairy-production.up.railway.app',  # Production1
         os.getenv('FRONTEND_URL', '')  # Custom domain if set
     ]
     # Filter out empty strings
@@ -140,7 +140,7 @@ def create_app():
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
-        response.headers['X-Force-Refresh'] = 'FIXED_LOCALHOST_20250624'
+        response.headers['X-Force-Refresh'] = 'FRESH_CLEAN_BUILD_202506240'
         return response
     
     # Serve main React app files
@@ -184,7 +184,7 @@ def create_app():
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
-        response.headers['X-Force-Refresh'] = 'FIXED_LOCALHOST_20250624'
+        response.headers['X-Force-Refresh'] = 'FRESH_CLEAN_BUILD_202506240'
         return response
     
     return app
