@@ -23,6 +23,11 @@ def create_app():
     # Configuration
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     
+    # Session configuration for production
+    app.config['SESSION_COOKIE_SECURE'] = True  # HTTPS only
+    app.config['SESSION_COOKIE_HTTPONLY'] = True
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+    
     # Database configuration (supports both SQLite and PostgreSQL)
     database_url = os.getenv('DATABASE_URL', 'sqlite:///garden_fairy.db')
     if database_url and database_url.startswith('postgres://'):
@@ -37,11 +42,12 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     
-    # Setup CORS - Allow frontend domains
+    # Setup CORS - Allow production domain
     allowed_origins = [
-        'http://localhost:3000', 
-        'http://localhost:5000',
-        os.getenv('FRONTEND_URL', '')  # Add your frontend URL here
+        'http://localhost:3000',  # Development
+        'http://localhost:5000',  # Development
+        'https://garden-fairy-production.up.railway.app',  # Production
+        os.getenv('FRONTEND_URL', '')  # Custom domain if set
     ]
     # Filter out empty strings
     allowed_origins = [origin for origin in allowed_origins if origin]
