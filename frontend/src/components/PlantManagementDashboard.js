@@ -55,8 +55,8 @@ const PlantManagementDashboard = () => {
     try {
       // Load plots and placements
       const [plotsResponse, placementsResponse] = await Promise.all([
-        fetch('http://localhost:5000/api/garden/plots', { credentials: 'include' }),
-        fetch('http://localhost:5000/api/garden/placements', { credentials: 'include' })
+        fetch('/api/garden/plots', { credentials: 'include' }),
+        fetch('/api/garden/placements', { credentials: 'include' })
       ]);
 
       const plotsData = await plotsResponse.json();
@@ -80,7 +80,7 @@ const PlantManagementDashboard = () => {
             // Load recent journal entries for this plant
             try {
               const journalResponse = await fetch(
-                `http://localhost:5000/api/garden/journal/${placement.plant_id}`,
+                `/api/garden/journal/${placement.plant_id}`,
                 { credentials: 'include' }
               );
               const journalData = await journalResponse.json();
