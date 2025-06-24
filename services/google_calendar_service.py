@@ -47,7 +47,11 @@ class GoogleCalendarService:
             },
             scopes=self.SCOPES
         )
-        flow.redirect_uri = 'http://localhost:3000/auth-callback.html'
+        # Dynamic redirect URI based on environment
+        base_url = os.getenv('FRONTEND_URL', 'https://garden-fairy-production.up.railway.app')
+        if current_app and hasattr(current_app, 'config') and current_app.config.get('ENV') == 'development':
+            base_url = 'http://localhost:3000'
+        flow.redirect_uri = f'{base_url}/auth-callback.html'
         
         authorization_url, state = flow.authorization_url(
             access_type='offline',
@@ -69,7 +73,11 @@ class GoogleCalendarService:
             },
             scopes=self.SCOPES
         )
-        flow.redirect_uri = 'http://localhost:3000/auth-callback.html'
+        # Dynamic redirect URI based on environment
+        base_url = os.getenv('FRONTEND_URL', 'https://garden-fairy-production.up.railway.app')
+        if current_app and hasattr(current_app, 'config') and current_app.config.get('ENV') == 'development':
+            base_url = 'http://localhost:3000'
+        flow.redirect_uri = f'{base_url}/auth-callback.html'
         
         flow.fetch_token(code=code)
         return flow.credentials

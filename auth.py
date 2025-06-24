@@ -152,8 +152,11 @@ def oauth_callback():
                    'openid']
         )
         
-        # Set the redirect URI
-        flow.redirect_uri = 'http://localhost:3000/auth/callback'
+        # Set the redirect URI - dynamic based on environment
+        base_url = os.getenv('FRONTEND_URL', 'https://garden-fairy-production.up.railway.app')
+        if 'localhost' in request.host:
+            base_url = 'http://localhost:3000'
+        flow.redirect_uri = f'{base_url}/auth/callback'
         
         # Exchange code for tokens
         try:
