@@ -14,7 +14,7 @@ from routes.plants import plants_bp
 from routes.garden import garden_bp
 from routes.calendar import calendar_bp
 from routes.garden_layout import garden_layout_bp
-# from routes.ai_features import ai_bp  # Temporarily disabled for deployment
+from routes.ai_features import ai_bp
 
 def create_app():
     # Configure Flask to serve static files from current directory
@@ -72,7 +72,7 @@ def create_app():
     app.register_blueprint(garden_bp)
     app.register_blueprint(calendar_bp)
     app.register_blueprint(garden_layout_bp)
-    # app.register_blueprint(ai_bp)  # Temporarily disabled for deployment
+    app.register_blueprint(ai_bp)
     
     # Health check endpoint
     @app.route('/health')
@@ -110,7 +110,8 @@ def create_app():
                 'auth': '/auth/*',
                 'plants': '/api/plants',
                 'garden': '/api/garden',
-                'calendar': '/api/calendar'
+                'calendar': '/api/calendar',
+                'ai': '/api/ai/*'
             }
         })
     
