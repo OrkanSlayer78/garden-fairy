@@ -116,26 +116,39 @@ def create_app():
         })
     
     # Serve React App - catch all non-API routes (MUST BE LAST!)
-    @app.route('/', defaults={'path': ''})
+    @app.route('/')
+    def serve_react_root():
+        return send_file('index.html')
+    
+    @app.route('/login')
+    def serve_react_login():
+        return send_file('index.html')
+    
+    @app.route('/dashboard')
+    def serve_react_dashboard():
+        return send_file('index.html')
+    
+    # Serve static files
+    @app.route('/static/<path:filename>')
+    def serve_static(filename):
+        return send_from_directory('static', filename)
+    
+    # Catch-all for other React routes
     @app.route('/<path:path>')
-    def serve_react(path):
+    def serve_react_catchall(path):
         # Skip API routes - they should be handled above
         if path.startswith('api/') or path.startswith('auth/') or path in ['health', 'init-db']:
-            # If we get here, it means the route wasn't found above
             return jsonify({'error': 'API route not found'}), 404
         
         # If it's a static file request, serve it
-        if path and '.' in path:
+        if '.' in path:
             try:
                 return send_from_directory('.', path)
             except Exception:
                 return jsonify({'error': 'Static file not found'}), 404
         
-        # For all other routes (like /login, /dashboard), serve React app
-        try:
-            return send_file('index.html')
-        except Exception as e:
-            return jsonify({'error': f'Frontend not found: {str(e)}'}), 404
+        # For all other routes, serve React app
+        return send_file('index.html')
     
     return app
 
