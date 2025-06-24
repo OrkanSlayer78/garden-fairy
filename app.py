@@ -135,7 +135,13 @@ def create_app():
     # Serve static files first (higher priority than catch-all)
     @app.route('/static/<path:filename>')
     def serve_static(filename):
-        response = send_from_directory('static', filename)
+        try:
+            # First try the nested static structure (React build creates static/static/)
+            response = send_from_directory('static/static', filename)
+        except:
+            # Fallback to regular static directory
+            response = send_from_directory('static', filename)
+        
         # Force Railway to refresh cached files - especially important for JS/CSS
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
