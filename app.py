@@ -156,6 +156,16 @@ def create_app():
     def asset_manifest():
         return send_from_directory('.', 'asset-manifest.json')
     
+    # Emergency route to bypass index.html caching
+    @app.route('/fresh')
+    def fresh_app():
+        response = send_file('static/index_new.html')
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.headers['X-Fresh-Load'] = 'TRUE'
+        return response
+    
     # React Router catch-all - MUST BE LAST!
     # This handles all client-side routes for the SPA
     @app.route('/', defaults={'path': ''})
@@ -179,8 +189,9 @@ def create_app():
         
         # All other routes (React Router paths like /dashboard, /plants, etc.)
         # Serve the main React app which will handle client-side routing
-        response = send_file('index.html')
-        # Force Railway to refresh index.html cache
+        # Use new filename to bypass Railway's aggressive index.html caching
+        response = send_file('static/index_new.html')
+        # Force Railway to refresh cache
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
