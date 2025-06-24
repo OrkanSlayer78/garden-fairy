@@ -13,10 +13,16 @@ auth_bp = Blueprint('auth', __name__)
 def google_auth():
     """Handle Google OAuth authentication"""
     try:
+        current_app.logger.info("Google auth request received")
+        
         # Get the token from the request
         token = request.json.get('token')
         if not token:
+            current_app.logger.error("No token provided in request")
             return jsonify({'error': 'No token provided'}), 400
+        
+        current_app.logger.info(f"Token received, length: {len(token)}")
+        current_app.logger.info(f"Google Client ID configured: {bool(current_app.config.get('GOOGLE_CLIENT_ID'))}")
         
         # Verify the token with Google
         idinfo = id_token.verify_oauth2_token(
@@ -25,8 +31,11 @@ def google_auth():
             current_app.config['GOOGLE_CLIENT_ID']
         )
         
+        current_app.logger.info("Token verification successful")
+        
         # Check if the token is from Google
         if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+            current_app.logger.error(f"Invalid token issuer: {idinfo['iss']}")
             return jsonify({'error': 'Invalid token issuer'}), 400
         
         google_id = idinfo['sub']
@@ -34,10 +43,13 @@ def google_auth():
         name = idinfo['name']
         picture = idinfo.get('picture', '')
         
+        current_app.logger.info(f"User info extracted: {email}")
+        
         # Check if user exists
         user = User.query.filter_by(google_id=google_id).first()
         
         if not user:
+            current_app.logger.info("Creating new user")
             # Create new user
             user = User(
                 google_id=google_id,
@@ -48,6 +60,7 @@ def google_auth():
             db.session.add(user)
             db.session.commit()
         else:
+            current_app.logger.info("Updating existing user")
             # Update existing user info
             user.email = email
             user.name = name
@@ -56,6 +69,7 @@ def google_auth():
         
         # Log in the user
         login_user(user, remember=True)
+        current_app.logger.info("User logged in successfully")
         
         return jsonify({
             'success': True,
@@ -63,10 +77,11 @@ def google_auth():
         })
         
     except ValueError as e:
-        return jsonify({'error': 'Invalid token'}), 400
+        current_app.logger.error(f"Token validation error: {str(e)}")
+        return jsonify({'error': f'Invalid token: {str(e)}'}), 400
     except Exception as e:
-        current_app.logger.error(f"Auth error: {str(e)}")
-        return jsonify({'error': 'Authentication failed'}), 500
+        current_app.logger.error(f"Unexpected auth error: {str(e)}")
+        return jsonify({'error': f'Authentication failed: {str(e)}'}), 500
 
 @auth_bp.route('/auth/logout', methods=['POST'])
 @login_required
