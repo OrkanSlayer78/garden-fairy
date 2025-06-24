@@ -88,6 +88,14 @@ def create_app():
     def health_check():
         return jsonify({'status': 'healthy', 'service': 'garden-fairy-backend'})
     
+    # Test SPA routing endpoint
+    @app.route('/test-spa')
+    def test_spa():
+        return jsonify({
+            'message': 'SPA routing is working!',
+            'note': 'If you can see this, the backend is serving React routes correctly'
+        })
+    
     # Database initialization endpoint (for production setup)
     @app.route('/init-db')
     def init_database():
@@ -124,39 +132,47 @@ def create_app():
             }
         })
     
-    # Serve React App - catch all non-API routes (MUST BE LAST!)
-    @app.route('/')
-    def serve_react_root():
-        return send_file('index.html')
-    
-    @app.route('/login')
-    def serve_react_login():
-        return send_file('index.html')
-    
-    @app.route('/dashboard')
-    def serve_react_dashboard():
-        return send_file('index.html')
-    
-    # Serve static files
+    # Serve static files first (higher priority than catch-all)
     @app.route('/static/<path:filename>')
     def serve_static(filename):
         return send_from_directory('static', filename)
     
-    # Catch-all for other React routes
+    # Serve main React app files
+    @app.route('/favicon.ico')
+    def favicon():
+        return send_from_directory('.', 'favicon.ico')
+    
+    @app.route('/manifest.json')
+    def manifest():
+        return send_from_directory('.', 'manifest.json')
+    
+    @app.route('/asset-manifest.json')
+    def asset_manifest():
+        return send_from_directory('.', 'asset-manifest.json')
+    
+    # React Router catch-all - MUST BE LAST!
+    # This handles all client-side routes for the SPA
+    @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
-    def serve_react_catchall(path):
-        # Skip API routes - they should be handled above
+    def serve_react_app(path):
+        # API routes should be handled by blueprints above
         if path.startswith('api/') or path.startswith('auth/') or path in ['health', 'init-db']:
-            return jsonify({'error': 'API route not found'}), 404
+            return jsonify({'error': 'API endpoint not found'}), 404
         
-        # If it's a static file request, serve it
+        # Static files with extensions - try to serve them
         if '.' in path:
             try:
+                # Try to serve from root directory first
                 return send_from_directory('.', path)
             except Exception:
-                return jsonify({'error': 'Static file not found'}), 404
+                try:
+                    # Try to serve from static directory
+                    return send_from_directory('static', path)
+                except Exception:
+                    return jsonify({'error': 'File not found'}), 404
         
-        # For all other routes, serve React app
+        # All other routes (React Router paths like /dashboard, /plants, etc.)
+        # Serve the main React app which will handle client-side routing
         return send_file('index.html')
     
     return app
