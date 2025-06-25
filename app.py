@@ -14,7 +14,7 @@ from routes.plants import plants_bp
 from routes.garden import garden_bp
 from routes.calendar import calendar_bp
 from routes.garden_layout import garden_layout_bp
-# from routes.ai_features import ai_bp  # Temporarily disabled
+from routes.ai_features import ai_bp
 
 def create_app():
     # Configure Flask to serve React build files
@@ -72,7 +72,7 @@ def create_app():
     app.register_blueprint(garden_bp)
     app.register_blueprint(calendar_bp)
     app.register_blueprint(garden_layout_bp)
-    # app.register_blueprint(ai_bp)  # Temporarily disabled
+    app.register_blueprint(ai_bp)
     
     # Health check endpoint
     @app.route('/health')
