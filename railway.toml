@@ -1,6 +1,6 @@
 [build]
 builder = "nixpacks"
-buildCommand = "cd frontend && npm install --legacy-peer-deps && npm run build && cd .. && cp -r frontend/build/* . && rm -rf frontend/build"
+buildCommand = "cd frontend && npm install --legacy-peer-deps && CI=false npm run build && cd .. && cp -r frontend/build/* . && rm -rf frontend/build"
 
 [deploy]
 startCommand = "gunicorn app:app"
