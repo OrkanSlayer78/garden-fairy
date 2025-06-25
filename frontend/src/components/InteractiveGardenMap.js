@@ -86,14 +86,7 @@ const InteractiveGardenMap = ({
         mapInstanceRef.current = map;
         drawingManagerRef.current = drawingManager;
 
-        // Add listeners for zoom and center changes to preserve map state
-        google.maps.event.addListener(map, 'zoom_changed', () => {
-          setCurrentZoom(map.getZoom());
-        });
-
-        google.maps.event.addListener(map, 'center_changed', () => {
-          setCurrentCenter(map.getCenter());
-        });
+        // Map state tracking removed - not needed for current functionality
 
         setMapLoaded(true);
 
@@ -423,7 +416,6 @@ const InteractiveGardenMap = ({
       
       const topRight = mapInstanceRef.current.getBounds().getNorthEast();
       const bottomLeft = mapInstanceRef.current.getBounds().getSouthWest();
-      const scale = Math.pow(2, mapInstanceRef.current.getZoom());
       
       const worldCoordinate = projection.fromLatLngToPoint(new window.google.maps.LatLng(
         topRight.lat() - (y / bounds.height) * (topRight.lat() - bottomLeft.lat()),
