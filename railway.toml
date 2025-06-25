@@ -1,8 +1,4 @@
-[build]
-builder = "nixpacks"
-buildCommand = "cd frontend && npm install --legacy-peer-deps && CI=false npm run build && cd .. && cp -r frontend/build/* . && rm -rf frontend/build"
-
 [deploy]
-startCommand = "gunicorn app:app"
+startCommand = "python -m gunicorn app:app --bind 0.0.0.0:$PORT"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10 

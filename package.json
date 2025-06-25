@@ -4,7 +4,7 @@
   "description": "AI-powered garden management application",
   "scripts": {
     "build": "cd frontend && npm install --legacy-peer-deps && CI=false npm run build && cd .. && cp -r frontend/build/* . && rm -rf frontend/build",
-    "start": "gunicorn app:app"
+    "start": "python -m gunicorn app:app --bind 0.0.0.0:$PORT"
   },
   "dependencies": {},
   "engines": {
