@@ -14,7 +14,7 @@ from routes.plants import plants_bp
 from routes.garden import garden_bp
 from routes.calendar import calendar_bp
 from routes.garden_layout import garden_layout_bp
-from routes.ai_features import ai_bp
+# from routes.ai_features import ai_bp  # Temporarily disabled
 
 def create_app():
     # Configure Flask to serve React build files
@@ -72,7 +72,7 @@ def create_app():
     app.register_blueprint(garden_bp)
     app.register_blueprint(calendar_bp)
     app.register_blueprint(garden_layout_bp)
-    app.register_blueprint(ai_bp)
+    # app.register_blueprint(ai_bp)  # Temporarily disabled
     
     # Health check endpoint
     @app.route('/health')
@@ -186,9 +186,10 @@ def init_sample_data(app):
         db.session.commit()
         print("Sample plant data initialized!")
 
+# Create app instance at module level for gunicorn
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
-    
     # Production settings
     port = int(os.environ.get("PORT", 5000))
     debug = os.environ.get("FLASK_ENV") == "development"
