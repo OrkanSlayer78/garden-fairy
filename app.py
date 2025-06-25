@@ -94,6 +94,14 @@ def create_app():
             }
         })
     
+    # Configuration endpoint for frontend
+    @app.route('/api/config')
+    def get_config():
+        return jsonify({
+            'googleClientId': app.config.get('GOOGLE_CLIENT_ID'),
+            'environment': os.getenv('FLASK_ENV', 'production')
+        })
+    
     # React Router catch-all - serves React app for all non-API routes
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')

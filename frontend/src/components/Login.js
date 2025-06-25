@@ -18,12 +18,35 @@ const Login = () => {
   const { loginWithGoogle, isAuthenticated, loading } = useAuth();
   const [error, setError] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
+  const [config, setConfig] = useState(null);
+  const [configLoading, setConfigLoading] = useState(true);
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/dashboard');
     }
   }, [isAuthenticated, navigate]);
+
+  // Fetch configuration from backend
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch('/api/config');
+        if (response.ok) {
+          const configData = await response.json();
+          setConfig(configData);
+        } else {
+          setError('Failed to load configuration');
+        }
+      } catch (err) {
+        setError('Failed to connect to server');
+      } finally {
+        setConfigLoading(false);
+      }
+    };
+
+    fetchConfig();
+  }, []);
 
   useEffect(() => {
     // Check for error in URL params
@@ -54,9 +77,9 @@ const Login = () => {
   useEffect(() => {
     // Initialize Google Sign-In
     const initializeGoogleSignIn = () => {
-      if (window.google && window.google.accounts) {
+      if (window.google && window.google.accounts && config?.googleClientId) {
         window.google.accounts.id.initialize({
-          client_id: process.env.REACT_APP_GOOGLE_CLIENT_ID,
+          client_id: config.googleClientId,
           callback: handleGoogleResponse,
           auto_select: false,
           cancel_on_tap_outside: true,
@@ -94,7 +117,7 @@ const Login = () => {
     return () => {
       document.removeEventListener('DOMContentLoaded', initializeGoogleSignIn);
     };
-  }, [handleGoogleResponse]);
+  }, [handleGoogleResponse, config]);
 
   const handleGoogleLogin = () => {
     if (window.google && window.google.accounts) {
@@ -110,7 +133,11 @@ const Login = () => {
 
   const handleDirectOAuth = () => {
     // Direct OAuth flow as fallback
-    const clientId = process.env.REACT_APP_GOOGLE_CLIENT_ID;
+    const clientId = config?.googleClientId;
+    if (!clientId) {
+      setError('Google Client ID not available');
+      return;
+    }
     const redirectUri = `${window.location.origin}/auth/callback`;
     const scope = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid';
     
@@ -126,7 +153,7 @@ const Login = () => {
     window.location.href = authUrl;
   };
 
-  if (loading) {
+  if (loading || configLoading) {
     return (
       <Box
         display="flex"
