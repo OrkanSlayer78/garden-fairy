@@ -172,13 +172,28 @@ def create_app():
         response.headers['X-Fresh-Load'] = 'TRUE'
         return response
     
+    # Explicit React Router routes for better SPA support
+    @app.route('/dashboard')
+    @app.route('/plants')  
+    @app.route('/garden')
+    @app.route('/calendar')
+    @app.route('/login')
+    @app.route('/settings')
+    def react_routes():
+        """Explicit routes for React Router paths to ensure proper SPA navigation"""
+        response = send_file('static/index_new.html')
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        return response
+    
     # React Router catch-all - MUST BE LAST!
     # This handles all client-side routes for the SPA
     @app.route('/', defaults={'path': ''})
     @app.route('/<path:path>')
     def serve_react_app(path):
         # API routes should be handled by blueprints above
-        if path.startswith('api/') or path.startswith('auth/') or path in ['health', 'init-db']:
+        if path.startswith('api/') or path.startswith('auth/') or path in ['health', 'init-db', 'fresh']:
             return jsonify({'error': 'API endpoint not found'}), 404
         
         # Static files with extensions - try to serve them
@@ -193,14 +208,16 @@ def create_app():
                 except Exception:
                     return jsonify({'error': 'File not found'}), 404
         
-        # All other routes (React Router paths like /dashboard, /plants, etc.)
-        # Serve the main React app which will handle client-side routing
-        # Use new filename to bypass Railway's aggressive index.html caching
+        # ALL React Router paths (/, /dashboard, /plants, /garden, etc.)
+        # Always serve the React app for client-side routing
         response = send_file('static/index_new.html')
-        # Force Railway to refresh cache
+        # SPA-specific headers for proper navigation
         response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
         response.headers['Pragma'] = 'no-cache'
         response.headers['Expires'] = '0'
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'DENY'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['X-Force-Refresh'] = 'FRESH_CLEAN_BUILD_202506240'
         return response
     
