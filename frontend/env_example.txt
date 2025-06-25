@@ -1,6 +1,6 @@
 # React App Configuration
 REACT_APP_API_URL=http://localhost:5000
-REACT_APP_GOOGLE_CLIENT_ID=your-google-oauth-client-id
+REACT_APP_GOOGLE_CLIENT_ID=887272457369-j1lk5b7v1e4l9l5b138hho5ql5unmots.apps.googleusercontent.com
 
 # Optional: For production builds
 # REACT_APP_API_URL=https://your-production-api-url.com

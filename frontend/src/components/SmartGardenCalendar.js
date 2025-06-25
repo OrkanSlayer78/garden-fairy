@@ -88,7 +88,7 @@ const SmartGardenCalendar = () => {
 
   const loadGoogleCalendarStatus = async () => {
     try {
-      const response = await fetch('/api/calendar/google-status', {
+      const response = await fetch('http://localhost:5000/api/calendar/google-status', {
         credentials: 'include'
       });
       const data = await response.json();
@@ -102,7 +102,7 @@ const SmartGardenCalendar = () => {
 
   const loadEvents = async () => {
     try {
-      const response = await fetch('/api/calendar', {
+      const response = await fetch('http://localhost:5000/api/calendar', {
         credentials: 'include'
       });
       const data = await response.json();
@@ -129,7 +129,7 @@ const SmartGardenCalendar = () => {
 
   const loadWeatherData = async () => {
     try {
-      const response = await fetch('/api/calendar/weather-forecast', {
+      const response = await fetch('http://localhost:5000/api/calendar/weather-forecast', {
         credentials: 'include'
       });
       const data = await response.json();
@@ -143,7 +143,7 @@ const SmartGardenCalendar = () => {
 
   const loadInsights = async () => {
     try {
-      const response = await fetch('/api/calendar/smart-insights', {
+      const response = await fetch('http://localhost:5000/api/calendar/smart-insights', {
         credentials: 'include'
       });
       const data = await response.json();
@@ -157,11 +157,11 @@ const SmartGardenCalendar = () => {
 
   const generateSmartSchedule = async () => {
     setScheduleGenerating(true);
-            try {
-          const response = await fetch('/api/calendar/generate-schedule', {
-            method: 'POST',
-            credentials: 'include'
-          });
+    try {
+      const response = await fetch('http://localhost:5000/api/calendar/generate-schedule', {
+        method: 'POST',
+        credentials: 'include'
+      });
       const data = await response.json();
       
       if (data.success) {
@@ -183,7 +183,7 @@ const SmartGardenCalendar = () => {
   const connectGoogleCalendar = async () => {
     try {
       // Get authorization URL
-      const response = await fetch('/api/calendar/google-auth-url', {
+      const response = await fetch('http://localhost:5000/api/calendar/google-auth-url', {
         credentials: 'include'
       });
       const data = await response.json();
@@ -206,7 +206,7 @@ const SmartGardenCalendar = () => {
     
     if (event.data.type === 'GOOGLE_OAUTH_SUCCESS' && event.data.code) {
       try {
-        const response = await fetch('/api/calendar/google-callback', {
+        const response = await fetch('http://localhost:5000/api/calendar/google-callback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -231,7 +231,7 @@ const SmartGardenCalendar = () => {
   const syncToGoogleCalendar = async () => {
     setGoogleSyncing(true);
     try {
-      const response = await fetch('/api/calendar/google-sync', {
+      const response = await fetch('http://localhost:5000/api/calendar/google-sync', {
         method: 'POST',
         credentials: 'include'
       });
@@ -253,7 +253,7 @@ const SmartGardenCalendar = () => {
 
   const disconnectGoogleCalendar = async () => {
     try {
-      const response = await fetch('/api/calendar/google-disconnect', {
+      const response = await fetch('http://localhost:5000/api/calendar/google-disconnect', {
         method: 'POST',
         credentials: 'include'
       });
@@ -626,7 +626,7 @@ const SmartGardenCalendar = () => {
                         size="small"
                         onClick={() => {
                           // Mark as completed
-                          fetch(`/api/calendar/${event.id}/complete`, {
+                          fetch(`http://localhost:5000/api/calendar/${event.id}/complete`, {
                             method: 'POST',
                             credentials: 'include'
                           }).then(() => loadEvents());

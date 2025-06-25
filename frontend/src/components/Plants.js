@@ -42,9 +42,11 @@ import {
   Opacity as WaterIcon,
   Schedule as CalendarIcon,
   Warning as WarningIcon,
+  SmartToy as AIIcon,
 } from '@mui/icons-material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { plantsAPI } from '../services/api';
+import AIPlantAssistant from './AIPlantAssistant';
 import dayjs from 'dayjs';
 
 const Plants = () => {
@@ -58,6 +60,8 @@ const Plants = () => {
   const [menuAnchor, setMenuAnchor] = useState(null);
   const [selectedPlant, setSelectedPlant] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
+  const [aiSelectedPlant, setAiSelectedPlant] = useState(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -342,6 +346,16 @@ const Plants = () => {
         onClose={() => setMenuAnchor(null)}
       >
         <MenuItem onClick={() => {
+          setAiSelectedPlant(selectedPlant);
+          setAiAssistantOpen(true);
+          setMenuAnchor(null);
+        }}>
+          <ListItemIcon>
+            <AIIcon fontSize="small" color="secondary" />
+          </ListItemIcon>
+          <ListItemText>🤖 Ask AI Assistant</ListItemText>
+        </MenuItem>
+        <MenuItem onClick={() => {
           handleDialogOpen(selectedPlant);
           setMenuAnchor(null);
         }}>
@@ -496,6 +510,16 @@ const Plants = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      {/* AI Plant Assistant Dialog */}
+      <AIPlantAssistant
+        open={aiAssistantOpen}
+        onClose={() => {
+          setAiAssistantOpen(false);
+          setAiSelectedPlant(null);
+        }}
+        plantData={aiSelectedPlant}
+      />
     </Box>
   );
 };

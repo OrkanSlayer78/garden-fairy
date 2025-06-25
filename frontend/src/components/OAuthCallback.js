@@ -32,7 +32,7 @@ const OAuthCallback = () => {
 
       try {
         // Exchange code for token on the backend
-        const response = await fetch('/auth/oauth/callback', {
+        const response = await fetch('http://localhost:5000/auth/oauth/callback', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -87,7 +87,7 @@ const PlantDetailDialog = ({
     try {
       // Load journal entries for this plant
       const journalResponse = await fetch(
-        `/api/garden/journal/${plantPlacement.plant_id || plantPlacement.plant_type_id}`,
+        `http://localhost:5000/api/garden/journal/${plantPlacement.plant_id || plantPlacement.plant_type_id}`,
         { credentials: 'include' }
       );
       const journalData = await journalResponse.json();
@@ -97,7 +97,7 @@ const PlantDetailDialog = ({
 
       // Load calendar events for this plant
       const eventsResponse = await fetch(
-        `/api/garden/calendar/plant/${plantPlacement.plant_id || plantPlacement.plant_type_id}`,
+        `http://localhost:5000/api/garden/calendar/plant/${plantPlacement.plant_id || plantPlacement.plant_type_id}`,
         { credentials: 'include' }
       );
       const eventsData = await eventsResponse.json();
@@ -212,7 +212,7 @@ const PlantDetailDialog = ({
 
     try {
       const response = await fetch(
-        `/api/garden/journal`,
+        `http://localhost:5000/api/garden/journal`,
         {
           method: 'POST',
           headers: {

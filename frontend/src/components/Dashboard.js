@@ -14,7 +14,9 @@ import {
   Alert,
   CircularProgress,
   Button,
-} from '@mui/material';
+  Fab,
+  Tooltip,
+  } from '@mui/material';
 import {
   LocalFlorist as PlantIcon,
   CalendarToday as CalendarIcon,
@@ -22,9 +24,11 @@ import {
   CheckCircle as HarvestedIcon,
   Warning as OverdueIcon,
   Add as AddIcon,
+  SmartToy,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { plantsAPI, calendarAPI } from '../services/api';
+import AIPlantAssistant from './AIPlantAssistant';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -33,6 +37,7 @@ const Dashboard = () => {
   const [overdueEvents, setOverdueEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [aiAssistantOpen, setAiAssistantOpen] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -198,6 +203,18 @@ const Dashboard = () => {
                 Schedule Task
               </Button>
               <Button
+                variant="contained"
+                startIcon={<SmartToy />}
+                fullWidth
+                onClick={() => setAiAssistantOpen(true)}
+                sx={{ 
+                  background: 'linear-gradient(45deg, #9c27b0 30%, #673ab7 90%)',
+                  color: 'white'
+                }}
+              >
+                🤖 AI Plant Assistant
+              </Button>
+              <Button
                 variant="outlined"
                 fullWidth
                 onClick={() => navigate('/garden')}
@@ -310,6 +327,32 @@ const Dashboard = () => {
           </Typography>
         </Paper>
       </Box>
+
+      {/* Floating AI Assistant Button */}
+      <Tooltip title="Ask AI Plant Assistant" placement="left">
+        <Fab
+          color="secondary"
+          aria-label="ai assistant"
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            background: 'linear-gradient(45deg, #9c27b0 30%, #673ab7 90%)',
+            '&:hover': {
+              background: 'linear-gradient(45deg, #7b1fa2 30%, #512da8 90%)',
+            }
+          }}
+          onClick={() => setAiAssistantOpen(true)}
+        >
+          <SmartToy />
+        </Fab>
+      </Tooltip>
+
+      {/* AI Plant Assistant Dialog */}
+      <AIPlantAssistant
+        open={aiAssistantOpen}
+        onClose={() => setAiAssistantOpen(false)}
+      />
     </Box>
   );
 };

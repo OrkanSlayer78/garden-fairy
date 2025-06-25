@@ -13,16 +13,10 @@ auth_bp = Blueprint('auth', __name__)
 def google_auth():
     """Handle Google OAuth authentication"""
     try:
-        current_app.logger.info("Google auth request received")
-        
         # Get the token from the request
         token = request.json.get('token')
         if not token:
-            current_app.logger.error("No token provided in request")
             return jsonify({'error': 'No token provided'}), 400
-        
-        current_app.logger.info(f"Token received, length: {len(token)}")
-        current_app.logger.info(f"Google Client ID configured: {bool(current_app.config.get('GOOGLE_CLIENT_ID'))}")
         
         # Verify the token with Google
         idinfo = id_token.verify_oauth2_token(
@@ -31,11 +25,8 @@ def google_auth():
             current_app.config['GOOGLE_CLIENT_ID']
         )
         
-        current_app.logger.info("Token verification successful")
-        
         # Check if the token is from Google
         if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
-            current_app.logger.error(f"Invalid token issuer: {idinfo['iss']}")
             return jsonify({'error': 'Invalid token issuer'}), 400
         
         google_id = idinfo['sub']
@@ -43,13 +34,10 @@ def google_auth():
         name = idinfo['name']
         picture = idinfo.get('picture', '')
         
-        current_app.logger.info(f"User info extracted: {email}")
-        
         # Check if user exists
         user = User.query.filter_by(google_id=google_id).first()
         
         if not user:
-            current_app.logger.info("Creating new user")
             # Create new user
             user = User(
                 google_id=google_id,
@@ -60,7 +48,6 @@ def google_auth():
             db.session.add(user)
             db.session.commit()
         else:
-            current_app.logger.info("Updating existing user")
             # Update existing user info
             user.email = email
             user.name = name
@@ -69,7 +56,6 @@ def google_auth():
         
         # Log in the user
         login_user(user, remember=True)
-        current_app.logger.info("User logged in successfully")
         
         return jsonify({
             'success': True,
@@ -77,11 +63,10 @@ def google_auth():
         })
         
     except ValueError as e:
-        current_app.logger.error(f"Token validation error: {str(e)}")
-        return jsonify({'error': f'Invalid token: {str(e)}'}), 400
+        return jsonify({'error': 'Invalid token'}), 400
     except Exception as e:
-        current_app.logger.error(f"Unexpected auth error: {str(e)}")
-        return jsonify({'error': f'Authentication failed: {str(e)}'}), 500
+        current_app.logger.error(f"Auth error: {str(e)}")
+        return jsonify({'error': 'Authentication failed'}), 500
 
 @auth_bp.route('/auth/logout', methods=['POST'])
 @login_required
@@ -93,38 +78,23 @@ def logout():
 @auth_bp.route('/auth/user')
 def get_current_user():
     """Get current authenticated user info"""
-    try:
-        if current_user.is_authenticated:
-            return jsonify({
-                'authenticated': True,
-                'user': current_user.to_dict()
-            })
-        else:
-            return jsonify({
-                'authenticated': False,
-                'user': None
-            })
-    except Exception as e:
-        current_app.logger.error(f"Auth user error: {str(e)}")
+    if current_user.is_authenticated:
+        return jsonify({
+            'authenticated': True,
+            'user': current_user.to_dict()
+        })
+    else:
         return jsonify({
             'authenticated': False,
-            'user': None,
-            'error': f'Auth check failed: {str(e)}'
-        }), 500
+            'user': None
+        })
 
 @auth_bp.route('/auth/check')
 def check_auth():
     """Check if user is authenticated"""
-    try:
-        return jsonify({
-            'authenticated': current_user.is_authenticated
-        })
-    except Exception as e:
-        current_app.logger.error(f"Auth check error: {str(e)}")
-        return jsonify({
-            'authenticated': False,
-            'error': f'Auth check failed: {str(e)}'
-        }), 500
+    return jsonify({
+        'authenticated': current_user.is_authenticated
+    })
 
 @auth_bp.route('/auth/oauth/callback', methods=['POST'])
 def oauth_callback():
@@ -152,11 +122,8 @@ def oauth_callback():
                    'openid']
         )
         
-        # Set the redirect URI - dynamic based on environment
-        base_url = os.getenv('FRONTEND_URL', 'https://garden-fairy-production.up.railway.app')
-        if 'localhost' in request.host:
-            base_url = 'http://localhost:3000'
-        flow.redirect_uri = f'{base_url}/auth/callback'
+        # Set the redirect URI
+        flow.redirect_uri = 'http://localhost:3000/auth/callback'
         
         # Exchange code for tokens
         try:

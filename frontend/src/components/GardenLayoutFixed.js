@@ -83,7 +83,7 @@ const GardenLayoutFixed = () => {
         center_y: gardenLocation.latitude + (Math.random() - 0.5) * 0.001,
       };
 
-      const response = await fetch('/api/garden/plots', {
+      const response = await fetch('http://localhost:5000/api/garden/plots', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -126,7 +126,7 @@ const GardenLayoutFixed = () => {
   // Update existing plot (for map interactions)
   const updatePlot = React.useCallback(async (plotId, updateData) => {
     try {
-      const response = await fetch(`/api/garden/plots/${plotId}`, {
+      const response = await fetch(`http://localhost:5000/api/garden/plots/${plotId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -155,7 +155,7 @@ const GardenLayoutFixed = () => {
     if (!window.confirm('Are you sure you want to delete this plot?')) return;
     
     try {
-      const response = await fetch(`/api/garden/plots/${plotId}`, {
+      const response = await fetch(`http://localhost:5000/api/garden/plots/${plotId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -171,7 +171,7 @@ const GardenLayoutFixed = () => {
   // Plant placement functions
   const placePlant = React.useCallback(async (placementData) => {
     try {
-      const response = await fetch('/api/garden/placements', {
+      const response = await fetch('http://localhost:5000/api/garden/placements', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -199,7 +199,7 @@ const GardenLayoutFixed = () => {
 
   const updatePlantPlacement = React.useCallback(async (placementId, updateData) => {
     try {
-      const response = await fetch(`/api/garden/placements/${placementId}`, {
+      const response = await fetch(`http://localhost:5000/api/garden/placements/${placementId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -221,7 +221,7 @@ const GardenLayoutFixed = () => {
 
   const deletePlantPlacement = React.useCallback(async (placementId) => {
     try {
-      const response = await fetch(`/api/garden/placements/${placementId}`, {
+      const response = await fetch(`http://localhost:5000/api/garden/placements/${placementId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -407,7 +407,7 @@ const GardenLayoutFixed = () => {
           name: 'My Garden'
         };
         
-        const response = await fetch('/api/garden/location', {
+        const response = await fetch('http://localhost:5000/api/garden/location', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
@@ -429,7 +429,7 @@ const GardenLayoutFixed = () => {
           
           // Fetch environmental data
           const envResponse = await fetch(
-            `/api/garden/environmental-data/${selectedPosition.lat}/${selectedPosition.lng}`,
+            `http://localhost:5000/api/garden/environmental-data/${selectedPosition.lat}/${selectedPosition.lng}`,
             { credentials: 'include' }
           );
           const envData = await envResponse.json();
@@ -1186,7 +1186,7 @@ const GardenLayoutFixed = () => {
    useEffect(() => {
      const loadExistingData = async () => {
        try {
-         const locationResponse = await fetch('/api/garden/location', { credentials: 'include' });
+         const locationResponse = await fetch('http://localhost:5000/api/garden/location', { credentials: 'include' });
          const locationData = await locationResponse.json();
          if (locationData.success && locationData.location) {
            setGardenLocation(locationData.location);
@@ -1195,7 +1195,7 @@ const GardenLayoutFixed = () => {
            // Also load environmental data (optional)
            try {
              const envResponse = await fetch(
-               `/api/garden/environmental-data/${locationData.location.latitude}/${locationData.location.longitude}`,
+               `http://localhost:5000/api/garden/environmental-data/${locationData.location.latitude}/${locationData.location.longitude}`,
                { credentials: 'include' }
              );
              if (envResponse.ok) {
@@ -1210,14 +1210,14 @@ const GardenLayoutFixed = () => {
          }
 
          // Load plots
-         const plotsResponse = await fetch('/api/garden/plots', { credentials: 'include' });
+         const plotsResponse = await fetch('http://localhost:5000/api/garden/plots', { credentials: 'include' });
          const plotsData = await plotsResponse.json();
          if (plotsData.success) {
            setPlots(plotsData.plots);
          }
 
          // Load plant placements
-         const placementsResponse = await fetch('/api/garden/placements', { credentials: 'include' });
+         const placementsResponse = await fetch('http://localhost:5000/api/garden/placements', { credentials: 'include' });
          const placementsData = await placementsResponse.json();
          if (placementsData.success) {
            setPlantPlacements(placementsData.placements);

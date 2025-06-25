@@ -14,22 +14,13 @@ from routes.plants import plants_bp
 from routes.garden import garden_bp
 from routes.calendar import calendar_bp
 from routes.garden_layout import garden_layout_bp
-from routes.ai_features import ai_bp
 
 def create_app():
-    # Configure Flask to serve React build files
-    app = Flask(__name__, static_folder='.', static_url_path='')
+    app = Flask(__name__)
     
     # Configuration
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
-    
-    # Database configuration (supports both SQLite and PostgreSQL)
-    database_url = os.getenv('DATABASE_URL', 'sqlite:///garden_fairy.db')
-    if database_url and database_url.startswith('postgres://'):
-        # Fix for newer SQLAlchemy versions
-        database_url = database_url.replace('postgres://', 'postgresql://', 1)
-    
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///garden_fairy.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['GOOGLE_CLIENT_ID'] = os.getenv('GOOGLE_CLIENT_ID')
     app.config['GOOGLE_CLIENT_SECRET'] = os.getenv('GOOGLE_CLIENT_SECRET')
@@ -37,17 +28,9 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     
-    # Setup CORS - Allow frontend domains
-    allowed_origins = [
-        'http://localhost:3000', 
-        'http://localhost:5000',
-        os.getenv('FRONTEND_URL', '')  # Add your frontend URL here
-    ]
-    # Filter out empty strings
-    allowed_origins = [origin for origin in allowed_origins if origin]
-    
+    # Setup CORS
     CORS(app, 
-         origins=allowed_origins,
+         origins=['http://localhost:3000', 'http://localhost:5000'],
          supports_credentials=True,
          allow_headers=['Content-Type', 'Authorization'],
          methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
@@ -72,16 +55,15 @@ def create_app():
     app.register_blueprint(garden_bp)
     app.register_blueprint(calendar_bp)
     app.register_blueprint(garden_layout_bp)
-    app.register_blueprint(ai_bp)
     
     # Health check endpoint
     @app.route('/health')
     def health_check():
         return jsonify({'status': 'healthy', 'service': 'garden-fairy-backend'})
     
-    # API info endpoint
-    @app.route('/api')
-    def api_info():
+    # Root endpoint
+    @app.route('/')
+    def root():
         return jsonify({
             'message': 'Garden Fairy API',
             'version': '1.0.0',
@@ -89,21 +71,9 @@ def create_app():
                 'auth': '/auth/*',
                 'plants': '/api/plants',
                 'garden': '/api/garden',
-                'calendar': '/api/calendar',
-                'ai': '/api/ai/*'
+                'calendar': '/api/calendar'
             }
         })
-    
-    # React Router catch-all - serves React app for all non-API routes
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
-    def serve_react_app(path):
-        # API routes should be handled by blueprints above
-        if path.startswith('api/') or path.startswith('auth/') or path == 'health':
-            return jsonify({'error': 'API endpoint not found'}), 404
-        
-        # Serve React app for all other routes (/, /dashboard, /plants, etc.)
-        return app.send_static_file('index.html')
     
     return app
 
@@ -189,16 +159,10 @@ def init_sample_data(app):
 if __name__ == '__main__':
     app = create_app()
     
-    # Production settings
-    port = int(os.environ.get("PORT", 5000))
-    debug = os.environ.get("FLASK_ENV") == "development"
-    
     # Create database tables
     with app.app_context():
         db.create_all()
-        # Only initialize sample data in development
-        if debug:
-            init_sample_data(app)
+        init_sample_data(app)
     
     # Run the application
-    app.run(debug=debug, host='0.0.0.0', port=port) 
+    app.run(debug=True, host='0.0.0.0', port=5000) 
