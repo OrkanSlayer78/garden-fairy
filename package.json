@@ -1,0 +1,14 @@
+{
+  "name": "garden-fairy",
+  "version": "1.0.0",
+  "description": "AI-powered garden management application",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build && cd .. && cp -r frontend/build/* . && rm -rf frontend/build",
+    "start": "gunicorn app:app"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": "18.x",
+    "npm": "9.x"
+  }
+} 
