@@ -7,8 +7,12 @@ SECRET_KEY=your-secret-key-here
 DATABASE_URL=sqlite:///garden_fairy.db
 
 # Google OAuth Configuration
-GOOGLE_CLIENT_ID=your-google-oauth-client-id
-GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+GOOGLE_CLIENT_ID=your_google_client_id_here
+GOOGLE_CLIENT_SECRET=your_google_client_secret_here
+
+# AI Features (Optional)
+OPENAI_API_KEY=your_openai_api_key_here
+PLANTNET_API_KEY=your_plantnet_api_key_here
 
 # CORS Configuration
 FRONTEND_URL=http://localhost:3000 
