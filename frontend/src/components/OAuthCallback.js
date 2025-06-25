@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Box, CircularProgress, Typography, Alert } from '@mui/material';
+import { Box, CircularProgress, Typography } from '@mui/material';
 import { useAuth } from '../context/AuthContext';
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { loginWithGoogle } = useAuth();
+
 
   useEffect(() => {
     let hasProcessed = false; // Prevent multiple calls

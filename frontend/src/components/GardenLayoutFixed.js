@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { isGoogleMapsAvailable, getStaticSatelliteMapUrl, getStaticMapUrl } from '../utils/googleMaps';
+// Google Maps utilities not used in this component
 import InteractiveGardenMap from './InteractiveGardenMap';
 import PlantPalette from './PlantPalette';
 import {
@@ -27,8 +27,6 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Fab,
-  Tooltip,
   Snackbar,
   Avatar,
   LinearProgress,
@@ -41,9 +39,7 @@ import {
   Search as SearchIcon,
   Map as MapIcon,
   Add as AddIcon,
-  Edit as EditIcon,
   Delete as DeleteIcon,
-  Crop as CropIcon,
   Satellite as SatelliteIcon,
   Thermostat as ThermostatIcon,
 } from '@mui/icons-material';
@@ -67,7 +63,7 @@ const GardenLayoutFixed = () => {
     sun_exposure: 'full_sun',
     irrigation_type: 'manual'
   });
-  const [drawingMode, setDrawingMode] = useState(false);
+
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
   const [plantPlacements, setPlantPlacements] = useState([]);
   const [isDragMode, setIsDragMode] = useState(false);
@@ -794,7 +790,7 @@ const GardenLayoutFixed = () => {
 
      // Satellite Map Plot Designer
    const PlotDesigner = React.memo(() => {
-     const [mapMode, setMapMode] = useState('map');
+ 
 
      // Early return if no garden location
      if (!gardenLocation) {

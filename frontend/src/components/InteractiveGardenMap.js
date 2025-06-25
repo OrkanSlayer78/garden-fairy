@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Box, Fab, Tooltip, Alert, Typography, Paper, IconButton } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Satellite as SatelliteIcon, Map as MapIcon } from '@mui/icons-material';
+import { Add as AddIcon, Delete as DeleteIcon, Satellite as SatelliteIcon, Map as MapIcon } from '@mui/icons-material';
 import { loadGoogleMaps, isGoogleMapsAvailable } from '../utils/googleMaps';
 import PlantDetailDialog from './PlantDetailDialog';
 
@@ -28,11 +28,10 @@ const InteractiveGardenMap = ({
   const [mapType, setMapType] = useState('satellite');
   const [selectedPlot, setSelectedPlot] = useState(null);
   const [selectedPlant, setSelectedPlant] = useState(null);
-  const [dragOverPlot, setDragOverPlot] = useState(null);
+
   const [plantDetailOpen, setPlantDetailOpen] = useState(false);
   const [selectedPlantDetail, setSelectedPlantDetail] = useState(null);
-  const [currentZoom, setCurrentZoom] = useState(18);
-  const [currentCenter, setCurrentCenter] = useState(null);
+
 
   // Initialize Google Maps
   useEffect(() => {

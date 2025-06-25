@@ -21,7 +21,6 @@ import {
   ListItem,
   ListItemText,
   ListItemIcon,
-  Divider,
   FormControl,
   InputLabel,
   Select,
@@ -37,7 +36,6 @@ import {
   QuestionAnswer,
   CheckCircle,
   Warning,
-  Info,
   Close,
 } from '@mui/icons-material';
 import { aiAPI } from '../services/api';
