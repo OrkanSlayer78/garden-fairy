@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // Create axios instance with default config
 const api = axios.create({
@@ -104,6 +104,22 @@ export const calendarAPI = {
   completeEvent: (id) => api.post(`/api/calendar/${id}/complete`),
   getUpcomingEvents: () => api.get('/api/calendar/upcoming'),
   getOverdueEvents: () => api.get('/api/calendar/overdue'),
+};
+
+// AI features API
+export const aiAPI = {
+  identifyPlant: (formData) => api.post('/api/ai/identify-plant', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
+  analyzeHealth: (formData) => api.post('/api/ai/analyze-health', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
+  getGardenAdvice: (data) => api.post('/api/ai/garden-advice', data),
+  askCareQuestion: (data) => api.post('/api/ai/care-question', data),
 };
 
 export default api; 
