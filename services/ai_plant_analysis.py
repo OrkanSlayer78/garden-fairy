@@ -29,7 +29,20 @@ class AIPlantAnalysisService:
             api_key = os.getenv('OPENAI_API_KEY')
             if not api_key:
                 raise ValueError("OPENAI_API_KEY environment variable not set")
-            self.openai_client = openai.OpenAI(api_key=api_key)
+            
+            # Railway-compatible client initialization
+            try:
+                self.openai_client = openai.OpenAI(
+                    api_key=api_key,
+                    timeout=30.0,  # Explicit timeout for Railway
+                    max_retries=2  # Reduce retries for Railway
+                )
+            except TypeError as e:
+                # Fallback for older OpenAI library versions
+                if "proxies" in str(e):
+                    self.openai_client = openai.OpenAI(api_key=api_key)
+                else:
+                    raise e
         return self.openai_client
         
     def identify_plant_species(self, image_path: str) -> Dict[str, Any]:
