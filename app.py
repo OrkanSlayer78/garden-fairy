@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_login import LoginManager
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -100,6 +100,21 @@ def create_app():
         return jsonify({
             'googleClientId': app.config.get('GOOGLE_CLIENT_ID'),
             'environment': os.getenv('FLASK_ENV', 'production')
+        })
+    
+    # Diagnostic endpoint for CORS and API issues
+    @app.route('/api/debug')
+    def debug_info():
+        return jsonify({
+            'cors_origins': allowed_origins,
+            'frontend_url': os.getenv('FRONTEND_URL', 'NOT_SET'),
+            'openai_configured': bool(os.getenv('OPENAI_API_KEY')),
+            'openai_key_length': len(os.getenv('OPENAI_API_KEY', '')) if os.getenv('OPENAI_API_KEY') else 0,
+            'google_oauth_configured': bool(app.config.get('GOOGLE_CLIENT_ID')),
+            'database_type': 'postgresql' if 'postgresql' in database_url else 'sqlite',
+            'request_origin': request.headers.get('Origin', 'NO_ORIGIN'),
+            'user_agent': request.headers.get('User-Agent', 'NO_USER_AGENT'),
+            'referer': request.headers.get('Referer', 'NO_REFERER')
         })
     
     # React Router catch-all - serves React app for all non-API routes
