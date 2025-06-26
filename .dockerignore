@@ -1,0 +1,54 @@
+# Node modules (will be installed fresh)
+frontend/node_modules
+node_modules
+
+# React build directory (will be built fresh)
+frontend/build
+
+# Git files
+.git
+.gitignore
+
+# Development files
+*.md
+.env
+.env.local
+.env.development
+.env.test
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode
+.idea
+*.swp
+*.swo
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+backend/venv/
+env/
+
+# Logs
+*.log
+
+# Test files
+test_*.py
+*_test.py
+
+# Local SQLite database
+*.db
+instance/
+
+# Upload directories that might contain test files
+uploads/ 
