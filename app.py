@@ -24,10 +24,11 @@ def create_app():
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
     
     # Session configuration for Flask-Login
-    app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS
+    # Temporarily disable secure settings for debugging
+    app.config['SESSION_COOKIE_SECURE'] = False  # Allow HTTP for testing
     app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent XSS
     app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
-    app.config['REMEMBER_COOKIE_SECURE'] = True
+    app.config['REMEMBER_COOKIE_SECURE'] = False
     app.config['REMEMBER_COOKIE_HTTPONLY'] = True
     
     # Database configuration (supports both SQLite and PostgreSQL)
