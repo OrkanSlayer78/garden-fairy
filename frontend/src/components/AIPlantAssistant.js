@@ -330,8 +330,37 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
             🌻 Garden Planning Advice
           </Typography>
           
-          {results.recommended_plants && results.recommended_plants.length > 0 && (
+          {/* Display the main AI recommendation */}
+          {results.recommendations && results.recommendations.recommendation && (
             <Box sx={{ mb: 2 }}>
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                {results.recommendations.recommendation}
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Fallback for direct advice field */}
+          {results.advice && !results.recommendations && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                {results.advice}
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Show model info */}
+          {results.recommendations && (
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                💡 Powered by {results.recommendations.model_used || 'AI'} 
+                {results.recommendations.location_context_used && ' • Location context applied'}
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Legacy support for structured data (if any exists) */}
+          {results.recommended_plants && results.recommended_plants.length > 0 && (
+            <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" gutterBottom>Recommended Plants:</Typography>
               <Grid container spacing={1}>
                 {results.recommended_plants.map((plant, index) => (
@@ -365,15 +394,6 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
                   </ListItem>
                 ))}
               </List>
-            </Box>
-          )}
-          
-          {results.advice && (
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>Personalized Advice:</Typography>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                {results.advice}
-              </Typography>
             </Box>
           )}
         </CardContent>
