@@ -325,22 +325,47 @@ def test_openai_simple():
         if not api_key:
             return jsonify({'error': 'OPENAI_API_KEY not set', 'success': False})
         
-        # Direct OpenAI client test
-        client = openai.OpenAI(
-            api_key=api_key,
-            timeout=30.0
-        )
+        # Railway-compatible OpenAI client initialization
+        try:
+            # Try standard initialization
+            client = openai.OpenAI(api_key=api_key)
+        except TypeError as e:
+            if "proxies" in str(e):
+                # Fallback for Railway environment issues
+                import openai as openai_module
+                openai_module.api_key = api_key
+                client = openai_module
+            else:
+                raise e
         
-        # Simple test call
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": "Say 'Garden test successful'"}],
-            max_tokens=10
-        )
+        # Simple test call (compatible with both client types)
+        try:
+            if hasattr(client, 'chat'):
+                # New client API
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": "Say 'Garden test successful'"}],
+                    max_tokens=10
+                )
+                result = response.choices[0].message.content
+            else:
+                # Fallback to older API
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": "Say 'Garden test successful'"}],
+                    max_tokens=10
+                )
+                result = response.choices[0].message.content
+        except Exception as api_error:
+            return jsonify({
+                'success': False,
+                'error': str(api_error),
+                'api_error_type': type(api_error).__name__
+            })
         
         return jsonify({
             'success': True,
-            'response': response.choices[0].message.content,
+            'response': result,
             'model': 'gpt-3.5-turbo'
         })
         

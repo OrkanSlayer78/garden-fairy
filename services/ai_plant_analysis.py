@@ -32,15 +32,13 @@ class AIPlantAnalysisService:
             
             # Railway-compatible client initialization
             try:
-                self.openai_client = openai.OpenAI(
-                    api_key=api_key,
-                    timeout=30.0,  # Explicit timeout for Railway
-                    max_retries=2  # Reduce retries for Railway
-                )
+                self.openai_client = openai.OpenAI(api_key=api_key)
             except TypeError as e:
-                # Fallback for older OpenAI library versions
+                # Fallback for Railway environment issues
                 if "proxies" in str(e):
-                    self.openai_client = openai.OpenAI(api_key=api_key)
+                    # Use legacy API approach
+                    openai.api_key = api_key
+                    self.openai_client = openai
                 else:
                     raise e
         return self.openai_client
@@ -114,13 +112,27 @@ class AIPlantAnalysisService:
             Format as JSON with: recommended_plants, planting_timeline, care_tips, companion_suggestions, local_suppliers
             """
             
-            response = self._get_openai_client().chat.completions.create(
-                model="gpt-3.5-turbo",  # Temporarily use GPT-3.5 for debugging
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ]
-            )
+            client = self._get_openai_client()
+            
+            # Handle both new and legacy OpenAI APIs
+            if hasattr(client, 'chat') and hasattr(client.chat, 'completions'):
+                # New client API
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo",  # Temporarily use GPT-3.5 for debugging
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ]
+                )
+            else:
+                # Legacy API
+                response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": prompt}
+                    ]
+                )
             
             recommendation = response.choices[0].message.content
             
