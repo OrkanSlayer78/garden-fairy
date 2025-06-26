@@ -150,26 +150,78 @@ def get_garden_advice():
         planting timeline, and care tips based on my location and garden type."""
     
     try:
+        # Use direct API call to bypass library issues
+        import requests
+        import os
+        
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'OpenAI API key not configured'}), 500
+        
         # Get user's garden location for context
-        location = GardenLocation.query.filter_by(user_id=current_user.id).first()
-        location_data = location.to_dict() if location else {
-            'latitude': 0,
-            'longitude': 0,
-            'climate_zone': 'Unknown',
-            'soil_type': 'Unknown'
+        location_obj = GardenLocation.query.filter_by(user_id=current_user.id).first()
+        location_context = ""
+        if location_obj:
+            location_context = f"""
+            Garden location context:
+            - Climate zone: {location_obj.climate_zone or 'Unknown'}
+            - Soil type: {location_obj.soil_type or 'Unknown'}
+            """
+        
+        # Enhanced prompt with context
+        enhanced_prompt = f"""You are a knowledgeable garden advisor. {location_context}
+        
+        User request: {prompt}
+        
+        Please provide specific, actionable gardening advice including:
+        1. Recommended plants for their conditions
+        2. Planting timeline
+        3. Care instructions
+        4. Any special considerations for their location/experience level
+        
+        Keep the response practical and helpful."""
+        
+        # Direct API call
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
         }
         
-        # Get AI recommendations
-        result = ai_plant_service.get_garden_recommendations(prompt, location_data)
+        payload = {
+            'model': 'gpt-3.5-turbo',
+            'messages': [
+                {'role': 'user', 'content': enhanced_prompt}
+            ],
+            'max_tokens': 500,
+            'temperature': 0.7
+        }
         
-        if result['success']:
+        response = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            advice = result['choices'][0]['message']['content']
+            
             return jsonify({
                 'success': True,
-                'recommendations': result,
+                'recommendations': {
+                    'recommendation': advice,
+                    'model_used': 'gpt-3.5-turbo',
+                    'location_context_used': bool(location_obj)
+                },
                 'existing_plants': _get_user_plants_summary()
             })
         else:
-            return jsonify({'error': result.get('error', 'Recommendation failed')}), 500
+            current_app.logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
+            return jsonify({
+                'error': f'OpenAI API error: {response.status_code}',
+                'debug': 'Direct API call failed'
+            }), 500
             
     except Exception as e:
         current_app.logger.error(f"Garden recommendation error: {e}")
