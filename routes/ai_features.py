@@ -173,7 +173,11 @@ def get_garden_advice():
             
     except Exception as e:
         current_app.logger.error(f"Garden recommendation error: {e}")
-        return jsonify({'error': 'Processing failed'}), 500
+        return jsonify({
+            'error': str(e),
+            'error_type': type(e).__name__,
+            'debug': 'Garden advice endpoint error'
+        }), 500
 
 @ai_bp.route('/api/ai/smart-companion-suggestions', methods=['POST'])
 @login_required
@@ -300,6 +304,44 @@ def test_openai():
             'response': response.choices[0].message.content,
             'key_length': len(api_key),
             'model_used': 'gpt-3.5-turbo'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'error_type': type(e).__name__
+        })
+
+@ai_bp.route('/api/ai/test-simple', methods=['GET'])
+@login_required  
+def test_openai_simple():
+    """Simple OpenAI test bypassing AI service"""
+    try:
+        import os
+        import openai
+        
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'OPENAI_API_KEY not set', 'success': False})
+        
+        # Direct OpenAI client test
+        client = openai.OpenAI(
+            api_key=api_key,
+            timeout=30.0
+        )
+        
+        # Simple test call
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "Say 'Garden test successful'"}],
+            max_tokens=10
+        )
+        
+        return jsonify({
+            'success': True,
+            'response': response.choices[0].message.content,
+            'model': 'gpt-3.5-turbo'
         })
         
     except Exception as e:
