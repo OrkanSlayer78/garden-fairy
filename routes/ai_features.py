@@ -316,8 +316,4 @@ def _get_user_plants_summary():
     ] 
 
 # Additional routes to match frontend API expectations
-@ai_bp.route('/api/ai/care-question', methods=['POST'])
-@login_required
-def care_question():
-    """Plant care assistant - frontend-compatible endpoint"""
-    return plant_care_assistant()
+# Note: care_question route is already defined above
