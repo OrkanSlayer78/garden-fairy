@@ -108,13 +108,14 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
 
     setLoading(true);
     setError('');
+    setResults(null);
     
     try {
       const formData = new FormData();
       formData.append('image', plantIdFile);
-      
+
       const response = await aiAPI.identifyPlant(formData);
-      setResults(response);
+      setResults(response.data); // Extract data from axios response
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to identify plant');
     } finally {
@@ -130,14 +131,15 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
 
     setLoading(true);
     setError('');
+    setResults(null);
     
     try {
       const formData = new FormData();
       formData.append('image', healthFile);
       if (symptoms) formData.append('symptoms', symptoms);
-      
+
       const response = await aiAPI.analyzeHealth(formData);
-      setResults(response);
+      setResults(response.data); // Extract data from axios response
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to analyze plant health');
     } finally {
@@ -153,15 +155,29 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
 
     setLoading(true);
     setError('');
+    setResults(null); // Clear previous results
     
     try {
+      console.log('Sending garden advice request:', { location, garden_type: gardenType, experience_level: experience });
+      
       const response = await aiAPI.getGardenAdvice({
         location,
         garden_type: gardenType,
         experience_level: experience
       });
-      setResults(response);
+      
+      console.log('Garden advice response:', response);
+      console.log('Response data:', response.data);
+      
+      // Extract data from axios response
+      const data = response.data;
+      setResults(data);
+      
+      console.log('Set results to:', data);
+      
     } catch (err) {
+      console.error('Garden advice error:', err);
+      console.error('Error response:', err.response?.data);
       setError(err.response?.data?.error || 'Failed to get garden advice');
     } finally {
       setLoading(false);
@@ -176,6 +192,7 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
 
     setLoading(true);
     setError('');
+    setResults(null);
     
     try {
       const response = await aiAPI.askCareQuestion({
@@ -183,7 +200,7 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
         plant_name: plantName,
         plant_data: plantData
       });
-      setResults(response);
+      setResults(response.data); // Extract data from axios response
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to get plant care advice');
     } finally {
@@ -345,6 +362,9 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
   const renderGardenResults = () => {
     if (!results) return null;
     
+    // Debug logging
+    console.log('Garden Results:', results);
+    
     return (
       <Card sx={{ mt: 2 }}>
         <CardContent>
@@ -352,35 +372,119 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
             🌻 Garden Planning Advice
           </Typography>
           
-          {/* Display the main AI recommendation */}
-          {results.recommendations && results.recommendations.recommendation && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                {results.recommendations.recommendation}
+          {/* Debug info - remove after testing */}
+          {process.env.NODE_ENV === 'development' && (
+            <Box sx={{ mb: 2, p: 1, bgcolor: 'info.light', borderRadius: 1 }}>
+              <Typography variant="caption">
+                Debug: {JSON.stringify(Object.keys(results))}
               </Typography>
             </Box>
           )}
           
-          {/* Fallback for direct advice field */}
+          {/* Primary: Display the main AI recommendation */}
+          {results.recommendations && results.recommendations.recommendation && (
+            <Box sx={{ mb: 2 }}>
+              <Paper 
+                sx={{ 
+                  p: 2, 
+                  bgcolor: 'background.default',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  maxHeight: '400px',
+                  overflow: 'auto'
+                }}
+              >
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    whiteSpace: 'pre-wrap', 
+                    lineHeight: 1.6,
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  {results.recommendations.recommendation}
+                </Typography>
+              </Paper>
+            </Box>
+          )}
+          
+          {/* Fallback: Direct advice field */}
           {results.advice && !results.recommendations && (
             <Box sx={{ mb: 2 }}>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
-                {results.advice}
-              </Typography>
+              <Paper 
+                sx={{ 
+                  p: 2, 
+                  bgcolor: 'background.default',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  maxHeight: '400px',
+                  overflow: 'auto'
+                }}
+              >
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    whiteSpace: 'pre-wrap', 
+                    lineHeight: 1.6,
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  {results.advice}
+                </Typography>
+              </Paper>
+            </Box>
+          )}
+          
+          {/* Fallback: Any recommendation field */}
+          {results.recommendation && !results.recommendations && !results.advice && (
+            <Box sx={{ mb: 2 }}>
+              <Paper 
+                sx={{ 
+                  p: 2, 
+                  bgcolor: 'background.default',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: 2,
+                  maxHeight: '400px',
+                  overflow: 'auto'
+                }}
+              >
+                <Typography 
+                  variant="body1" 
+                  sx={{ 
+                    whiteSpace: 'pre-wrap', 
+                    lineHeight: 1.6,
+                    fontFamily: 'inherit'
+                  }}
+                >
+                  {results.recommendation}
+                </Typography>
+              </Paper>
             </Box>
           )}
           
           {/* Show model info */}
-          {results.recommendations && (
+          {(results.recommendations || results.model_used) && (
             <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
               <Typography variant="caption" color="text.secondary">
-                💡 Powered by {results.recommendations.model_used || 'AI'} 
-                {results.recommendations.location_context_used && ' • Location context applied'}
+                💡 Powered by {results.recommendations?.model_used || results.model_used || 'AI'} 
+                {results.recommendations?.location_context_used && ' • Location context applied'}
               </Typography>
             </Box>
           )}
           
-          {/* Legacy support for structured data (if any exists) */}
+          {/* If no content found, show fallback */}
+          {!results.recommendations?.recommendation && !results.advice && !results.recommendation && (
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
+              <Typography variant="body2">
+                No garden advice content found. Raw data: {JSON.stringify(results)}
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Legacy support for structured data */}
           {results.recommended_plants && results.recommended_plants.length > 0 && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" gutterBottom>Recommended Plants:</Typography>
@@ -397,9 +501,11 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
           {results.seasonal_advice && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" gutterBottom>Seasonal Advice:</Typography>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                {results.seasonal_advice}
-              </Typography>
+              <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {results.seasonal_advice}
+                </Typography>
+              </Paper>
             </Box>
           )}
           
