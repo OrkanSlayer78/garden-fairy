@@ -200,6 +200,28 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
           <Typography variant="h6" gutterBottom>
             🌱 Plant Identification Results
           </Typography>
+          
+          {/* Display the main AI analysis from our new API */}
+          {results.identification && results.identification.ai_analysis && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
+                {results.identification.ai_analysis}
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Show model info and confidence */}
+          {results.identification && (
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                💡 Powered by {results.identification.model_used || 'AI'} 
+                {results.identification.confidence_score && 
+                  ` • Confidence: ${Math.round(results.identification.confidence_score * 100)}%`}
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Legacy support for old response format */}
           {results.species && (
             <Box sx={{ mb: 2 }}>
               <Typography variant="subtitle1" color="primary" gutterBottom>
@@ -411,14 +433,26 @@ const AIPlantAssistant = ({ open, onClose, plantData = null }) => {
             💡 Plant Care Advice
           </Typography>
           
+          {/* Display the AI answer from our fixed API */}
           {results.answer && (
             <Box sx={{ mb: 2 }}>
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.6 }}>
                 {results.answer}
               </Typography>
             </Box>
           )}
           
+          {/* Show model info */}
+          {results.model_used && (
+            <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                💡 Powered by {results.model_used} 
+                {results.context_used && ' • Plant context applied'}
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Legacy support for structured data */}
           {results.care_tips && results.care_tips.length > 0 && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" gutterBottom>Additional Care Tips:</Typography>

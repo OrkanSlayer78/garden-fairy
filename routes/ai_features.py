@@ -39,24 +39,84 @@ def identify_plant():
         file.save(filepath)
         
         try:
-            # Identify plant using AI service
-            result = ai_plant_service.identify_plant_species(filepath)
+            # Use direct API call for plant identification
+            import base64
+            import requests
             
-            # Clean up uploaded file (optional - you might want to keep for records)
-            # os.remove(filepath)
+            api_key = os.getenv('OPENAI_API_KEY')
+            if not api_key:
+                return jsonify({'error': 'OpenAI API key not configured'}), 500
             
-            if result['success']:
+            # Encode image to base64
+            with open(filepath, "rb") as image_file:
+                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+            
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
+            }
+            
+            payload = {
+                'model': 'gpt-4-vision-preview',
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': [
+                            {
+                                'type': 'text',
+                                'text': '''Identify this plant species. Please provide:
+                                1. Common name
+                                2. Scientific name (if identifiable)
+                                3. Plant family
+                                4. Basic care instructions
+                                5. Any notable characteristics
+                                
+                                Be specific and accurate. If you're not certain, mention your confidence level.'''
+                            },
+                            {
+                                'type': 'image_url',
+                                'image_url': {
+                                    'url': f'data:image/jpeg;base64,{base64_image}'
+                                }
+                            }
+                        ]
+                    }
+                ],
+                'max_tokens': 500
+            }
+            
+            response = requests.post(
+                'https://api.openai.com/v1/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                analysis = result['choices'][0]['message']['content']
+                
                 return jsonify({
                     'success': True,
-                    'identification': result,
-                    'suggested_plants': _find_matching_plant_types(result)
+                    'identification': {
+                        'ai_analysis': analysis,
+                        'confidence_score': 0.8,  # Default confidence for GPT-4V
+                        'plantnet_suggestions': [],  # Could add PlantNet later
+                        'success': True,
+                        'model_used': 'gpt-4-vision-preview'
+                    },
+                    'suggested_plants': []  # Could populate based on identification
                 })
             else:
-                return jsonify({'error': result.get('error', 'Identification failed')}), 500
+                current_app.logger.error(f"OpenAI Vision API error: {response.status_code} - {response.text}")
+                return jsonify({
+                    'error': f'Plant identification failed: {response.status_code}',
+                    'debug': 'Vision API call failed'
+                }), 500
                 
         except Exception as e:
             current_app.logger.error(f"Plant identification error: {e}")
-            return jsonify({'error': 'Processing failed'}), 500
+            return jsonify({'error': 'Processing failed', 'debug': str(e)}), 500
     
     return jsonify({'error': 'Invalid file format'}), 400
 
@@ -70,61 +130,130 @@ def analyze_plant_health():
     file = request.files.get('image') or request.files.get('photo')
     if not file:
         return jsonify({'error': 'No image uploaded'}), 400
-    plant_id = request.form.get('plant_id')
+    
+    plant_id = request.form.get('plant_id')  # Optional now
     placement_id = request.form.get('placement_id')
-    
-    if not plant_id:
-        return jsonify({'error': 'Plant ID required'}), 400
-    
-    # Get plant information
-    plant = Plant.query.filter_by(id=plant_id, user_id=current_user.id).first()
-    if not plant:
-        return jsonify({'error': 'Plant not found'}), 404
     
     if file and allowed_file(file.filename):
         # Save uploaded file
-        filename = secure_filename(f"health_{current_user.id}_{plant_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
+        filename = secure_filename(f"health_{current_user.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{file.filename}")
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         file.save(filepath)
         
         try:
-            # Prepare plant info for analysis
-            plant_info = {
-                'name': plant.plant_type.name if plant.plant_type else 'Unknown',
-                'scientific_name': plant.plant_type.scientific_name if plant.plant_type else '',
-                'planted_date': plant.planted_date.isoformat() if plant.planted_date else None,
-                'status': plant.status
+            # Use direct API call for health analysis
+            import base64
+            import requests
+            
+            api_key = os.getenv('OPENAI_API_KEY')
+            if not api_key:
+                return jsonify({'error': 'OpenAI API key not configured'}), 500
+            
+            # Prepare plant context if plant_id provided
+            plant_context = ""
+            if plant_id:
+                plant = Plant.query.filter_by(id=plant_id, user_id=current_user.id).first()
+                if plant:
+                    plant_context = f"""
+                    Plant context:
+                    - Name: {plant.plant_type.name if plant.plant_type else 'Unknown'}
+                    - Scientific name: {plant.plant_type.scientific_name if plant.plant_type else 'Unknown'}
+                    - Planted: {plant.planted_date if plant.planted_date else 'Unknown'}
+                    - Current status: {plant.status}
+                    """
+            
+            # Encode image to base64
+            with open(filepath, "rb") as image_file:
+                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+            
+            headers = {
+                'Authorization': f'Bearer {api_key}',
+                'Content-Type': 'application/json'
             }
             
-            # Analyze plant health
-            result = ai_plant_service.analyze_plant_health(filepath, plant_info)
+            payload = {
+                'model': 'gpt-4-vision-preview',
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': [
+                            {
+                                'type': 'text',
+                                'text': f'''Analyze this plant's health. {plant_context}
+                                
+                                Please look for and report on:
+                                1. Overall health status (healthy, stressed, diseased)
+                                2. Any visible diseases or pest damage
+                                3. Signs of nutrient deficiencies 
+                                4. Watering issues (over/under watering)
+                                5. Any other concerns
+                                6. Specific recommendations for improvement
+                                
+                                Provide practical, actionable advice.'''
+                            },
+                            {
+                                'type': 'image_url',
+                                'image_url': {
+                                    'url': f'data:image/jpeg;base64,{base64_image}'
+                                }
+                            }
+                        ]
+                    }
+                ],
+                'max_tokens': 500
+            }
             
-            if result['success']:
-                # Save analysis to plant journal
-                journal_entry = PlantJournal(
-                    user_id=current_user.id,
-                    plant_id=plant_id,
-                    placement_id=placement_id,
-                    entry_date=datetime.now().date(),
-                    entry_type='ai_health_analysis',
-                    title='AI Health Analysis',
-                    content=result['analysis'],
-                    photos=[filepath]  # Store photo path
-                )
-                db.session.add(journal_entry)
-                db.session.commit()
+            response = requests.post(
+                'https://api.openai.com/v1/chat/completions',
+                headers=headers,
+                json=payload,
+                timeout=30
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                analysis = result['choices'][0]['message']['content']
+                
+                # Optionally save to journal if plant_id provided
+                journal_entry_id = None
+                if plant_id:
+                    try:
+                        journal_entry = PlantJournal(
+                            user_id=current_user.id,
+                            plant_id=plant_id,
+                            placement_id=placement_id,
+                            entry_date=datetime.now().date(),
+                            entry_type='ai_health_analysis',
+                            title='AI Health Analysis',
+                            content=analysis,
+                            photos=[filepath]
+                        )
+                        db.session.add(journal_entry)
+                        db.session.commit()
+                        journal_entry_id = journal_entry.id
+                    except Exception as journal_error:
+                        current_app.logger.warning(f"Could not save to journal: {journal_error}")
                 
                 return jsonify({
                     'success': True,
-                    'analysis': result,
-                    'journal_entry_id': journal_entry.id
+                    'analysis': {
+                        'analysis': analysis,
+                        'success': True,
+                        'model_used': 'gpt-4-vision-preview',
+                        'plant_context_used': bool(plant_id and plant_context)
+                    },
+                    'journal_entry_id': journal_entry_id
                 })
             else:
-                return jsonify({'error': result.get('error', 'Analysis failed')}), 500
+                current_app.logger.error(f"OpenAI Vision API error: {response.status_code} - {response.text}")
+                return jsonify({
+                    'error': f'Health analysis failed: {response.status_code}',
+                    'debug': 'Vision API call failed'
+                }), 500
                 
         except Exception as e:
             current_app.logger.error(f"Plant health analysis error: {e}")
-            return jsonify({'error': 'Processing failed'}), 500
+            return jsonify({'error': 'Processing failed', 'debug': str(e)}), 500
     
     return jsonify({'error': 'Invalid file format'}), 400
 
@@ -284,7 +413,15 @@ def plant_care_assistant():
         return jsonify({'error': 'Question required'}), 400
     
     try:
-        context = "You are a helpful garden assistant. "
+        # Use direct API call like our working garden advice endpoint
+        import requests
+        import os
+        
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            return jsonify({'error': 'OpenAI API key not configured'}), 500
+        
+        context = "You are a helpful and knowledgeable garden assistant. "
         
         if plant_id:
             plant = Plant.query.filter_by(id=plant_id, user_id=current_user.id).first()
@@ -307,21 +444,60 @@ def plant_care_assistant():
             - Soil type: {location.soil_type or 'Unknown'}
             """
         
-        # Use the AI service to get recommendations
-        result = ai_plant_service.get_garden_recommendations(
-            f"{context}\n\nUser question: {question}",
-            location.to_dict() if location else {}
+        # Create enhanced prompt
+        enhanced_prompt = f"""{context}
+
+        User question: {question}
+
+        Please provide helpful, specific gardening advice. Include practical steps and tips."""
+        
+        # Direct API call
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        payload = {
+            'model': 'gpt-3.5-turbo',
+            'messages': [
+                {'role': 'user', 'content': enhanced_prompt}
+            ],
+            'max_tokens': 400,
+            'temperature': 0.7
+        }
+        
+        response = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers=headers,
+            json=payload,
+            timeout=30
         )
         
-        return jsonify({
-            'success': True,
-            'answer': result.get('recommendation', 'Unable to provide answer'),
-            'context_used': bool(plant_id)
-        })
+        if response.status_code == 200:
+            result = response.json()
+            answer = result['choices'][0]['message']['content']
+            
+            return jsonify({
+                'success': True,
+                'answer': answer,
+                'context_used': bool(plant_id or location),
+                'model_used': 'gpt-3.5-turbo'
+            })
+        else:
+            current_app.logger.error(f"OpenAI API error: {response.status_code} - {response.text}")
+            return jsonify({
+                'success': False,
+                'error': f'Care assistant failed: {response.status_code}',
+                'answer': 'Unable to provide answer due to API error'
+            }), 500
         
     except Exception as e:
         current_app.logger.error(f"Plant care assistant error: {e}")
-        return jsonify({'error': 'Processing failed'}), 500
+        return jsonify({
+            'success': False,
+            'error': 'Processing failed',
+            'answer': 'Unable to provide answer due to processing error'
+        }), 500
 
 @ai_bp.route('/api/ai/care-question', methods=['POST'])
 @login_required
