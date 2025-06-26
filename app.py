@@ -1,5 +1,5 @@
 import os
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session
 from flask_login import LoginManager
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -22,6 +22,13 @@ def create_app():
     
     # Configuration
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-production')
+    
+    # Session configuration for Flask-Login
+    app.config['SESSION_COOKIE_SECURE'] = True  # Only send cookies over HTTPS
+    app.config['SESSION_COOKIE_HTTPONLY'] = True  # Prevent XSS
+    app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'  # CSRF protection
+    app.config['REMEMBER_COOKIE_SECURE'] = True
+    app.config['REMEMBER_COOKIE_HTTPONLY'] = True
     
     # Database configuration (supports both SQLite and PostgreSQL)
     database_url = os.getenv('DATABASE_URL', 'sqlite:///garden_fairy.db')
@@ -105,6 +112,7 @@ def create_app():
     # Diagnostic endpoint for CORS and API issues
     @app.route('/api/debug')
     def debug_info():
+        from flask_login import current_user
         return jsonify({
             'cors_origins': allowed_origins,
             'frontend_url': os.getenv('FRONTEND_URL', 'NOT_SET'),
@@ -114,7 +122,11 @@ def create_app():
             'database_type': 'postgresql' if 'postgresql' in database_url else 'sqlite',
             'request_origin': request.headers.get('Origin', 'NO_ORIGIN'),
             'user_agent': request.headers.get('User-Agent', 'NO_USER_AGENT'),
-            'referer': request.headers.get('Referer', 'NO_REFERER')
+            'referer': request.headers.get('Referer', 'NO_REFERER'),
+            'flask_login_authenticated': current_user.is_authenticated,
+            'current_user_id': current_user.id if current_user.is_authenticated else None,
+            'session_data': dict(session) if session else {},
+            'cookies': dict(request.cookies)
         })
     
     # React Router catch-all - serves React app for all non-API routes
@@ -125,8 +137,16 @@ def create_app():
         if path.startswith('api/') or path.startswith('auth/') or path == 'health':
             return jsonify({'error': 'API endpoint not found'}), 404
         
-        # Serve React app for all other routes (/, /dashboard, /plants, etc.)
-        return app.send_static_file('index.html')
+        # Don't serve static files through this route
+        if path.startswith('static/') or '.' in path.split('/')[-1]:
+            return app.send_static_file(path)
+        
+        # For all SPA routes (dashboard, plants, etc.), serve React app
+        try:
+            return app.send_static_file('index.html')
+        except Exception:
+            # Fallback if index.html not found
+            return jsonify({'error': 'Frontend not built'}), 404
     
     return app
 
