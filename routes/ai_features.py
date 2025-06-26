@@ -25,10 +25,10 @@ def identify_plant():
     """Identify plant species from uploaded photo"""
     ensure_upload_dir()
     
-    if 'photo' not in request.files:
-        return jsonify({'error': 'No photo uploaded'}), 400
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image uploaded'}), 400
     
-    file = request.files['photo']
+    file = request.files['image']
     if file.filename == '':
         return jsonify({'error': 'No file selected'}), 400
     
@@ -60,16 +60,16 @@ def identify_plant():
     
     return jsonify({'error': 'Invalid file format'}), 400
 
-@ai_bp.route('/api/ai/analyze-plant-health', methods=['POST'])
+@ai_bp.route('/api/ai/analyze-health', methods=['POST'])
 @login_required
 def analyze_plant_health():
     """Analyze plant health from photo"""
     ensure_upload_dir()
     
-    if 'photo' not in request.files:
-        return jsonify({'error': 'No photo uploaded'}), 400
-    
-    file = request.files['photo']
+    # Accept both 'image' (frontend) and 'photo' field names
+    file = request.files.get('image') or request.files.get('photo')
+    if not file:
+        return jsonify({'error': 'No image uploaded'}), 400
     plant_id = request.form.get('plant_id')
     placement_id = request.form.get('placement_id')
     
@@ -128,15 +128,26 @@ def analyze_plant_health():
     
     return jsonify({'error': 'Invalid file format'}), 400
 
-@ai_bp.route('/api/ai/garden-recommendations', methods=['POST'])
+@ai_bp.route('/api/ai/garden-advice', methods=['POST'])
 @login_required
-def get_garden_recommendations():
+def get_garden_advice():
     """Get AI-powered garden planning recommendations"""
     data = request.get_json()
-    prompt = data.get('prompt')
     
+    # Handle both prompt format and structured format from frontend
+    prompt = data.get('prompt')
     if not prompt:
-        return jsonify({'error': 'Prompt required'}), 400
+        # Build prompt from structured data
+        location = data.get('location', '')
+        garden_type = data.get('garden_type', '')
+        experience_level = data.get('experience_level', '')
+        
+        if not location or not garden_type or not experience_level:
+            return jsonify({'error': 'Location, garden type, and experience level required'}), 400
+        
+        prompt = f"""I'm a {experience_level} gardener in {location} planning a {garden_type} garden. 
+        What plants would work well for my setup? Please suggest specific plants, 
+        planting timeline, and care tips based on my location and garden type."""
     
     try:
         # Get user's garden location for context
@@ -256,6 +267,12 @@ def plant_care_assistant():
         current_app.logger.error(f"Plant care assistant error: {e}")
         return jsonify({'error': 'Processing failed'}), 500
 
+@ai_bp.route('/api/ai/care-question', methods=['POST'])
+@login_required
+def care_question():
+    """Plant care assistant - frontend-compatible endpoint"""
+    return plant_care_assistant()
+
 def _find_matching_plant_types(identification_result):
     """Find matching plant types in the database"""
     suggestions = []
@@ -297,3 +314,10 @@ def _get_user_plants_summary():
         }
         for p in plants
     ] 
+
+# Additional routes to match frontend API expectations
+@ai_bp.route('/api/ai/care-question', methods=['POST'])
+@login_required
+def care_question():
+    """Plant care assistant - frontend-compatible endpoint"""
+    return plant_care_assistant()
