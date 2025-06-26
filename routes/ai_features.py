@@ -273,6 +273,42 @@ def care_question():
     """Plant care assistant - frontend-compatible endpoint"""
     return plant_care_assistant()
 
+@ai_bp.route('/api/ai/test', methods=['GET'])
+@login_required  
+def test_openai():
+    """Simple test endpoint to debug OpenAI connection"""
+    try:
+        import os
+        api_key = os.getenv('OPENAI_API_KEY')
+        
+        if not api_key:
+            return jsonify({'error': 'OPENAI_API_KEY not set', 'success': False})
+        
+        # Test basic OpenAI client creation
+        from openai import OpenAI
+        client = OpenAI(api_key=api_key)
+        
+        # Simple test call
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": "Say 'Garden Fairy test successful'"}],
+            max_tokens=10
+        )
+        
+        return jsonify({
+            'success': True,
+            'response': response.choices[0].message.content,
+            'key_length': len(api_key),
+            'model_used': 'gpt-3.5-turbo'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'error_type': type(e).__name__
+        })
+
 def _find_matching_plant_types(identification_result):
     """Find matching plant types in the database"""
     suggestions = []

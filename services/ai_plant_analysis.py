@@ -102,7 +102,7 @@ class AIPlantAnalysisService:
             """
             
             response = self._get_openai_client().chat.completions.create(
-                model="gpt-4",
+                model="gpt-3.5-turbo",  # Temporarily use GPT-3.5 for debugging
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
