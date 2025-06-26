@@ -1,0 +1,122 @@
+.openai-test {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.test-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.test-header h2 {
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.test-header p {
+    color: #718096;
+    font-size: 1.1rem;
+}
+
+.test-button {
+    display: block;
+    width: 100%;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 2rem;
+}
+
+.test-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(102, 126, 234, 0.4);
+}
+
+.test-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.test-button.testing {
+    background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+
+.result {
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.result.success {
+    background-color: #f0fff4;
+    border: 2px solid #68d391;
+}
+
+.result.error {
+    background-color: #fed7d7;
+    border: 2px solid #fc8181;
+}
+
+.result h3 {
+    margin: 0 0 1rem 0;
+    font-size: 1.3rem;
+}
+
+.result.success h3 {
+    color: #2f855a;
+}
+
+.result.error h3 {
+    color: #c53030;
+}
+
+.result-details p {
+    margin: 0.5rem 0;
+    line-height: 1.5;
+}
+
+.result-details strong {
+    color: #2d3748;
+}
+
+.test-info {
+    background-color: #f7fafc;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border-left: 4px solid #4299e1;
+}
+
+.test-info h4 {
+    margin: 0 0 1rem 0;
+    color: #2d3748;
+}
+
+.test-info ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.test-info li {
+    margin: 0.5rem 0;
+    color: #4a5568;
+    line-height: 1.4;
+} 

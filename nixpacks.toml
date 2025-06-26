@@ -7,5 +7,6 @@ cmds = ["pip install --upgrade pip setuptools wheel"]
 [phases.build]
 cmds = ["pip install -r requirements.txt"]
 
-[start]
-cmd = "python app.py" 
+# Commented out since we're using Dockerfile
+# [start]
+# cmd = "python app.py" 

@@ -13,6 +13,7 @@ import GardenAnalyzer from './components/GardenAnalyzer';
 import GardenLayoutFixed from './components/GardenLayoutFixed';
 import PlantManagementDashboard from './components/PlantManagementDashboard';
 import SmartGardenCalendar from './components/SmartGardenCalendar';
+import OpenAITest from './components/OpenAITest';
 
 // Placeholder components for other routes
 const Analytics = () => <div>Analytics component will be implemented here</div>;
@@ -73,6 +74,9 @@ function AppRoutes() {
         path="/auth/callback"
         element={<OAuthCallback />}
       />
+      
+      {/* OpenAI Test - Public Route for easy testing */}
+      <Route path="/test-openai" element={<OpenAITest />} />
 
       {/* Protected Routes */}
       <Route

@@ -319,55 +319,49 @@ def test_openai_simple():
     """Simple OpenAI test bypassing AI service"""
     try:
         import os
-        import openai
+        import requests
+        import json
         
         api_key = os.getenv('OPENAI_API_KEY')
         if not api_key:
             return jsonify({'error': 'OPENAI_API_KEY not set', 'success': False})
         
-        # Railway-compatible OpenAI client initialization
-        try:
-            # Try standard initialization
-            client = openai.OpenAI(api_key=api_key)
-        except TypeError as e:
-            if "proxies" in str(e):
-                # Fallback for Railway environment issues
-                import openai as openai_module
-                openai_module.api_key = api_key
-                client = openai_module
-            else:
-                raise e
+        # Direct API call to bypass library issues
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
         
-        # Simple test call (compatible with both client types)
-        try:
-            if hasattr(client, 'chat'):
-                # New client API
-                response = client.chat.completions.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": "Say 'Garden test successful'"}],
-                    max_tokens=10
-                )
-                result = response.choices[0].message.content
-            else:
-                # Fallback to older API
-                response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": "Say 'Garden test successful'"}],
-                    max_tokens=10
-                )
-                result = response.choices[0].message.content
-        except Exception as api_error:
+        data = {
+            'model': 'gpt-3.5-turbo',
+            'messages': [
+                {'role': 'user', 'content': 'Say "Garden test successful"'}
+            ],
+            'max_tokens': 10
+        }
+        
+        # Direct HTTP request to OpenAI API
+        response = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers=headers,
+            json=data,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            return jsonify({
+                'success': True,
+                'response': result['choices'][0]['message']['content'],
+                'model': 'gpt-3.5-turbo',
+                'method': 'direct_http'
+            })
+        else:
             return jsonify({
                 'success': False,
-                'error': str(api_error),
-                'api_error_type': type(api_error).__name__
+                'error': f'OpenAI API error: {response.status_code}',
+                'details': response.text[:200]
             })
-        
-        return jsonify({
-            'success': True,
-            'response': result,
-            'model': 'gpt-3.5-turbo'
-        })
         
     except Exception as e:
         return jsonify({
@@ -375,6 +369,71 @@ def test_openai_simple():
             'error': str(e),
             'error_type': type(e).__name__
         })
+
+# Public test endpoint for OpenAI connectivity (no auth required)
+@ai_bp.route('/api/ai/test-connection', methods=['GET'])
+def test_openai_connection():
+    """Simple public test endpoint to verify OpenAI connectivity"""
+    try:
+        # Simple test query
+        import requests
+        import json
+        
+        api_key = os.getenv('OPENAI_API_KEY')
+        if not api_key:
+            return jsonify({
+                'success': False,
+                'error': 'OpenAI API key not configured',
+                'debug': 'OPENAI_API_KEY environment variable not found'
+            }), 500
+        
+        # Direct API call to avoid library issues
+        headers = {
+            'Authorization': f'Bearer {api_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        payload = {
+            'model': 'gpt-3.5-turbo',
+            'messages': [
+                {'role': 'user', 'content': 'Say "Garden Fairy AI is working!" if you can read this.'}
+            ],
+            'max_tokens': 50
+        }
+        
+        response = requests.post(
+            'https://api.openai.com/v1/chat/completions',
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            result = response.json()
+            message = result['choices'][0]['message']['content']
+            
+            return jsonify({
+                'success': True,
+                'message': message,
+                'test_status': 'OpenAI API working correctly',
+                'api_key_length': len(api_key),
+                'model_used': 'gpt-3.5-turbo'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': f'OpenAI API error: {response.status_code}',
+                'response': response.text,
+                'debug': 'Direct API call failed'
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'error_type': type(e).__name__,
+            'debug': 'Exception in test endpoint'
+        }), 500
 
 def _find_matching_plant_types(identification_result):
     """Find matching plant types in the database"""

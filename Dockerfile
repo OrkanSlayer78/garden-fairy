@@ -22,5 +22,5 @@ COPY . ./
 # Expose port (Railway will set PORT env var)
 EXPOSE $PORT
 
-# Start the application
-CMD python app.py 
+# Start the application (use the same command that works locally)
+CMD ["python", "app.py"] 
