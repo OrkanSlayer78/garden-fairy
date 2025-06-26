@@ -1,19 +1,11 @@
 [phases.setup]
-nixPkgs = ['python310', 'python310Packages.pip', 'python310Packages.virtualenv', 'nodejs_18']
+nixPkgs = ["gcc", "python311"]
 
 [phases.install]
-cmds = [
-  'python3 -m venv venv',
-  'source venv/bin/activate && pip install -r requirements.txt',
-  'cd frontend && npm install --legacy-peer-deps'
-]
+cmds = ["pip install --upgrade pip setuptools wheel"]
 
 [phases.build]
-cmds = [
-  'cd frontend && CI=false npm run build',
-  'cp -r frontend/build/* .',
-  'rm -rf frontend/build'
-]
+cmds = ["pip install -r requirements.txt"]
 
 [start]
-cmd = 'source venv/bin/activate && python -m gunicorn app:app --bind 0.0.0.0:$PORT' 
+cmd = "python app.py" 
